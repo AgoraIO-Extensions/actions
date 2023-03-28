@@ -1,68 +1,57 @@
-name: Update doc
-
+name: doc
+description: Update doc
 inputs:
   iris-doc-ref:
     description: iris-doc repo ref
-    type: string
     required: true
     default: "main"
 
   target_repo:
     description: pull request target repo
-    type: string
     required: true
     default: "AgoraIO-Extensions/Agora-Flutter-SDK"
 
   target_branch:
     description: pull request target branch
-    type: string
     required: true
     default: "main"
 
   target_branch_name_surffix:
     description: The surffix of the branch name, e.g., if doc-update, the branch name become main-doc-update
-    type: string
     required: true
     default: "doc-update"
 
   pull_request_title:
     description: The title of the pull request
-    type: string
     required: true
     default: "[AUTO] Update doc"
 
   config:
     description: The language config
-    type: string
     required: true
     default: "fmt_config/fmt_dart.yaml"
 
   language:
     description: The language
-    type: string
     required: true
     default: "dart"
 
   base-template-url:
     description: The base template url
-    type: string
     required: true
     default: "https://github.com/AgoraIO/agora_doc_source/releases/download/main/flutter_ng_json_template_en.json"
 
   merge-template-url:
     description: The template url to merge
-    type: string
     default: ""
 
   export-file-path:
     description: The export file path
-    type: string
     required: true
     default: "lib/agora_rtc_engine.dart"
 
   github-token:
     description: The github token
-    type: string
     required: true
 
 runs:
@@ -94,6 +83,7 @@ runs:
         node-version: "16.x"
     - run: npm install -g yarn
       if: ${{ inputs.language == 'ts' }}
+      shell: bash
 
     - name: Run build macos
       run: |
@@ -116,6 +106,7 @@ runs:
 
         CONFIG=${{ inputs.config }}
         python3 iris_doc.py --config="$ROOT_PATH/iris-doc/$CONFIG" --language=${{ inputs.language }} --export-file-path=${EXPORT_FILE_PATH} ${TEMPLATE_URL_ARGS}
+      shell: bash
 
     - name: Create Pull Request
       id: cpr
