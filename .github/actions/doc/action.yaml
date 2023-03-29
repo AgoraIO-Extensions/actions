@@ -4,7 +4,7 @@ inputs:
   iris-doc-ref:
     description: iris-doc repo ref
     required: true
-    default: "LichKing-2234-patch-1"
+    default: "main"
 
   target_repo:
     description: pull request target repo
