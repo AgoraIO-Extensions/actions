@@ -80,6 +80,7 @@ runs:
 
     - name: Run terra
       run: |
+        export PATH="/usr/local/opt/llvm/bin:$PATH"
         npm install
         npm run build -- render-legacy \
           --config ${{ github.workspace }}/${{ inputs.target_repo }}/${{ inputs.config }} \
