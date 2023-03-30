@@ -82,6 +82,8 @@ runs:
 
     - name: Run terra
       run: |
+        set -x
+
         export PATH="/usr/local/opt/llvm/bin:$PATH"
 
         npm install
