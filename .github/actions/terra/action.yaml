@@ -75,8 +75,7 @@ runs:
     - name: Setup
       run: |
         brew install coreutils
-        brew install gcc
-        brew install llvm@15
+        xcode-select --install
       shell: bash
 
     - name: Run terra
