@@ -1,5 +1,5 @@
 name: terra
-description: Generate code 
+description: Generate code
 inputs:
   terra-ref:
     description: terra repo ref
@@ -41,6 +41,9 @@ inputs:
     required: true
     default: "lib/agora_rtc_engine.dart"
 
+  pre-terra-command:
+    description: The command before terra build
+
   github-token:
     description: The github token
     required: true
@@ -71,6 +74,11 @@ runs:
     - name: Setup
       run: |
         brew install coreutils
+      shell: bash
+
+    - name: Run command befor terra
+      if: ${{ inputs.pre-terra-command }}
+      run: ${{ inputs.pre-terra-command }}
       shell: bash
 
     - name: Run terra
