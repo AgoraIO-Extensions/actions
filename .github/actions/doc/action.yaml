@@ -94,7 +94,7 @@ runs:
         python3 -m pip install -r requirements.txt
 
         BASE_TEMPLATE_URL="${{ inputs.base-template-url }}"
-        MERGE_TEMPLATE_URL="${{ inputs.merge-template-url }}
+        MERGE_TEMPLATE_URL="${{ inputs.merge-template-url }}"
         TEMPLATE_URL_ARGS="--template-url=${BASE_TEMPLATE_URL}"
 
         if [[ -n "${MERGE_TEMPLATE_URL}" ]]; then
