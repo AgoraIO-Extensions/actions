@@ -101,14 +101,15 @@ runs:
           TEMPLATE_URL_ARGS="${TEMPLATE_URL_ARGS} --template-url=${MERGE_TEMPLATE_URL}"
         fi
 
+        ROOT_PATH="${{ github.workspace }}"
+
         if [[ -n "${{ inputs.target-path }}" ]]; then
           TARGET_PATH="${{ inputs.target-path }}"
         else
-          TARGET_PATH="${{ inputs.target-repo }}"
+          TARGET_PATH="${ROOT_PATH}/${{ inputs.target-repo }}"
         fi
 
-        ROOT_PATH="${{ github.workspace }}"
-        EXPORT_FILE_PATH=${ROOT_PATH}/${TARGET_PATH}/${{ inputs.export-file-path }}
+        EXPORT_FILE_PATH="${TARGET_PATH}/${{ inputs.export-file-path }}"
         python3 iris_doc.py --config="${ROOT_PATH}/iris-doc/${{ inputs.config }}" --language="${{ inputs.language }}" --export-file-path=${EXPORT_FILE_PATH} ${TEMPLATE_URL_ARGS}
       working-directory: iris-doc
       shell: bash

@@ -88,17 +88,18 @@ runs:
 
         npm install
 
+        ROOT_PATH="${{ github.workspace }}"
+
         if [[ -n "${{ inputs.target-path }}" ]]; then
           TARGET_PATH="${{ inputs.target-path }}"
         else
-          TARGET_PATH="${{ inputs.target-repo }}"
+          TARGET_PATH="${ROOT_PATH}/${{ inputs.target-repo }}"
         fi
 
-        ROOT_PATH="${{ github.workspace }}/${TARGET_PATH}"
         npm run build -- render-legacy \
-          --config "${ROOT_PATH}/${{ inputs.config }}" \
-          --output-dir="${ROOT_PATH}/${{ inputs.output-dir }}" \
-          --export-file-path="${ROOT_PATH}/${{ inputs.export-file-path }}"
+          --config "${TARGET_PATH}/${{ inputs.config }}" \
+          --output-dir="${TARGET_PATH}/${{ inputs.output-dir }}" \
+          --export-file-path="${TARGET_PATH}/${{ inputs.export-file-path }}"
       working-directory: terra/terra-cli
       shell: bash
 
