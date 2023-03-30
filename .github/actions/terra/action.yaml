@@ -79,6 +79,7 @@ runs:
     - name: Run command befor terra
       if: ${{ inputs.pre-terra-command }}
       run: ${{ inputs.pre-terra-command }}
+      working-directory: ${{ inputs.target_repo }}
       shell: bash
 
     - name: Run terra
