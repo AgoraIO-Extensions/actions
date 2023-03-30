@@ -1,0 +1,53 @@
+name: pr
+description: Create pull request
+inputs:
+  target-repo:
+    description: The pull request target repo
+    required: true
+
+  target-branch:
+    description: The pull request target branch
+    required: true
+
+  target-branch-name-surffix:
+    description: The surffix of the branch name, e.g., if terra-update, the branch name become main-terra-update
+    required: true
+
+  pull-request-title:
+    description: The title of the pull request
+    required: true
+
+  pull-request-body:
+    description: The body of the pull request
+    required: true
+    default: ""
+
+  github-token:
+    description: The github token
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Create pull request
+      uses: peter-evans/create-pull-request@v4
+      with:
+        token: ${{ inputs.github-token }}
+        path: ${{ inputs.target-repo }}
+        commit-message: ${{ inputs.pull-request-title }}
+        committer: GitHub <noreply@github.com>
+        author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+        signoff: false
+        branch: "${{ inputs.target-branch }}-${{ inputs.target-branch-name-surffix }}"
+        base: ${{ inputs.target-branch }}
+        delete-branch: true
+        draft: false
+        title: ${{ inputs.pull-request-title }}
+        body: |
+          ${{ inputs.pull-request-title }}
+
+          ${{ inputs.pull-request-body }}
+
+          > This pull request is trigger by bot, do not edit it directly
+        labels: |
+          ci:${{ inputs.target-branch-name-surffix }}

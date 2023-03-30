@@ -1,27 +1,30 @@
 name: terra
-description: Generate code
+description: Generate codes
 inputs:
   terra-ref:
-    description: terra repo ref
+    description: The terra repo ref
     required: true
     default: "main"
 
-  target_repo:
-    description: pull request target repo
+  target-repo:
+    description: The pull request target repo
     required: true
     default: "AgoraIO-Extensions/Agora-Flutter-SDK"
 
-  target_branch:
-    description: pull request target branch
+  target-branch:
+    description: The pull request target branch
     required: true
     default: "main"
 
-  target_branch_name_surffix:
+  target-path:
+    description: The path to generate codes, if set, will skip clone & pr
+
+  target-branch-name-surffix:
     description: The surffix of the branch name, e.g., if terra-update, the branch name become main-terra-update
     required: true
     default: "terra-update"
 
-  pull_request_title:
+  pull-request-title:
     description: The title of the pull request
     required: true
     default: "[AUTO] Generate code by terra"
@@ -51,7 +54,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Check out terra
+    - name: Checkout terra
       uses: actions/checkout@v3
       with:
         token: ${{ inputs.github-token }}
@@ -59,13 +62,14 @@ runs:
         ref: ${{ inputs.terra-ref }}
         path: terra
 
-    - name: Check out build project
+    - name: Checkout build project
+      if: ${{ !inputs.target-path }}
       uses: actions/checkout@v3
       with:
         token: ${{ inputs.github-token }}
-        repository: ${{ inputs.target_repo }}
-        ref: ${{ inputs.target_branch }}
-        path: ${{ inputs.target_repo }}
+        repository: ${{ inputs.target-repo }}
+        ref: ${{ inputs.target-branch }}
+        path: ${{ inputs.target-repo }}
 
     - uses: actions/setup-node@v3
       with:
@@ -79,38 +83,35 @@ runs:
     - name: Run terra
       run: |
         export PATH="/usr/local/opt/llvm/bin:$PATH"
+
         npm install
+
+        if [[ -n "${{ inputs.target-path }}" ]]; then
+          TARGET_PATH="${{ inputs.target-path }}"
+        else
+          TARGET_PATH="${{ inputs.target-repo }}"
+        fi
+
+        ROOT_PATH="${{ github.workspace }}/${TARGET_PATH}"
         npm run build -- render-legacy \
-          --config ${{ github.workspace }}/${{ inputs.target_repo }}/${{ inputs.config }} \
-          --output-dir=${{ github.workspace }}/${{ inputs.target_repo }}/${{ inputs.output-dir }} \
-          --export-file-path=${{ github.workspace }}/${{ inputs.target_repo }}/${{ inputs.export-file-path }}
+          --config "${ROOT_PATH}/${{ inputs.config }}" \
+          --output-dir="${ROOT_PATH}/${{ inputs.output-dir }}" \
+          --export-file-path="${ROOT_PATH}/${{ inputs.export-file-path }}"
       working-directory: terra/terra-cli
       shell: bash
 
     - name: Run command before pr
       if: ${{ inputs.pre-pr-command }}
       run: ${{ inputs.pre-pr-command }}
-      working-directory: ${{ inputs.target_repo }}
+      working-directory: ${{ inputs.target-repo }}
       shell: bash
 
-    - name: Create Pull Request
-      id: cpr
-      uses: peter-evans/create-pull-request@v4
+    - name: Create pull request
+      if: ${{ !inputs.target-path }}
+      uses: ./.github/actions/pr
       with:
-        token: ${{ inputs.github-token }}
-        path: ${{ inputs.target_repo }}
-        commit-message: ${{ inputs.pull_request_title }}
-        committer: GitHub <noreply@github.com>
-        author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
-        signoff: false
-        branch: "${{ inputs.target_branch }}-${{ inputs.target_branch_name_surffix }}"
-        base: ${{ inputs.target_branch }}
-        delete-branch: true
-        draft: false
-        title: ${{ inputs.pull_request_title }}
-        body: |
-          ${{ inputs.pull_request_title }}
-
-          > This pull request is trigger by bot, do not edit it directly
-        labels: |
-          ci:terra
+        target-repo: ${{ inputs.target-repo }}
+        target-branch: ${{ inputs.target-branch }}
+        target-branch-name-surffix: ${{ inputs.target-branch-name-surffix }}
+        pull-request-title: ${{ inputs.pull-request-title }}
+        github-token: ${{ inputs.github-token }}

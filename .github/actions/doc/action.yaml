@@ -1,30 +1,33 @@
 name: doc
-description: Update doc
+description: Generate comments
 inputs:
   iris-doc-ref:
-    description: iris-doc repo ref
+    description: The iris-doc repo ref
     required: true
     default: "main"
 
-  target_repo:
-    description: pull request target repo
+  target-repo:
+    description: The pull request target repo
     required: true
     default: "AgoraIO-Extensions/Agora-Flutter-SDK"
 
-  target_branch:
-    description: pull request target branch
+  target-branch:
+    description: The pull request target branch
     required: true
     default: "main"
 
-  target_branch_name_surffix:
+  target-path:
+    description: The path to generate comments, if set, will skip clone & pr
+
+  target-branch-name-surffix:
     description: The surffix of the branch name, e.g., if doc-update, the branch name become main-doc-update
     required: true
     default: "doc-update"
 
-  pull_request_title:
+  pull-request-title:
     description: The title of the pull request
     required: true
-    default: "[AUTO] Update doc"
+    default: "[AUTO] Generate comments by iris-doc"
 
   config:
     description: The language config
@@ -57,20 +60,22 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Check out iris_doc
+    - name: Checkout iris-doc
       uses: actions/checkout@v3
       with:
+        token: ${{ inputs.github-token }}
         repository: littleGnAl/iris-doc
         ref: ${{ inputs.iris-doc-ref }}
         path: iris-doc
 
-    - name: Check out build project
+    - name: Checkout build project
+      if: ${{ !inputs.target-path }}
       uses: actions/checkout@v3
       with:
         token: ${{ inputs.github-token }}
-        repository: ${{ inputs.target_repo }}
-        ref: ${{ inputs.target_branch }}
-        path: ${{ inputs.target_repo }}
+        repository: ${{ inputs.target-repo }}
+        ref: ${{ inputs.target-branch }}
+        path: ${{ inputs.target-repo }}
 
     - uses: subosito/flutter-action@v1
       if: ${{ inputs.language == 'dart' }}
@@ -81,53 +86,39 @@ runs:
       if: ${{ inputs.language == 'ts' }}
       with:
         node-version: "16.x"
-    - run: npm install -g yarn
-      if: ${{ inputs.language == 'ts' }}
-      shell: bash
 
-    - name: Run iris doc
+    - name: Run iris-doc
       run: |
-        BASE_TEMPLATE_URL=${{ inputs.base-template-url }}
-        MERGE_TEMPLATE_URL=${{ inputs.merge-template-url }}
+        python3 -m pip install -r requirements.txt
+
+        BASE_TEMPLATE_URL="${{ inputs.base-template-url }}"
+        MERGE_TEMPLATE_URL="${{ inputs.merge-template-url }}
         TEMPLATE_URL_ARGS="--template-url=${BASE_TEMPLATE_URL}"
 
-        if [ ! -z "${MERGE_TEMPLATE_URL}" ]; then
+        if [[ -n "${MERGE_TEMPLATE_URL}" ]]; then
           TEMPLATE_URL_ARGS="${TEMPLATE_URL_ARGS} --template-url=${MERGE_TEMPLATE_URL}"
         fi
 
-        TARGET_REPO=${{ inputs.target_repo }}
-        ROOT_PATH=$(pwd)
-        EXPORT_FILE_PATH=${ROOT_PATH}/${TARGET_REPO}/${{ inputs.export-file-path }}
-        cd iris-doc
+        if [[ -n "${{ inputs.target-path }}" ]]; then
+          TARGET_PATH="${{ inputs.target-path }}"
+        else
+          TARGET_PATH="${{ inputs.target-repo }}"
+        fi
 
-        python3 -m pip install -r requirements.txt
-
-        echo ${EXPORT_FILE_PATH}
-
-        CONFIG=${{ inputs.config }}
-        python3 iris_doc.py --config="$ROOT_PATH/iris-doc/$CONFIG" --language=${{ inputs.language }} --export-file-path=${EXPORT_FILE_PATH} ${TEMPLATE_URL_ARGS}
+        ROOT_PATH="${{ github.workspace }}"
+        EXPORT_FILE_PATH=${ROOT_PATH}/${TARGET_PATH}/${{ inputs.export-file-path }}
+        python3 iris_doc.py --config="${ROOT_PATH}/iris-doc/${{ inputs.config }}" --language="${{ inputs.language }}" --export-file-path=${EXPORT_FILE_PATH} ${TEMPLATE_URL_ARGS}
+      working-directory: iris-doc
       shell: bash
 
-    - name: Create Pull Request
-      id: cpr
-      uses: peter-evans/create-pull-request@v4
+    - name: Create pull request
+      if: ${{ !inputs.target-path }}
+      uses: ./.github/actions/pr
       with:
-        token: ${{ inputs.github-token }}
-        path: ${{ inputs.target_repo }}
-        commit-message: ${{ inputs.pull_request_title }}
-        committer: GitHub <noreply@github.com>
-        author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
-        signoff: false
-        branch: "${{ inputs.target_branch }}-${{ inputs.target_branch_name_surffix }}"
-        base: ${{ inputs.target_branch }}
-        delete-branch: true
-        draft: false
-        title: ${{ inputs.pull_request_title }}
-        body: |
-          ${{ inputs.pull_request_title }}
-
+        target-repo: ${{ inputs.target-repo }}
+        target-branch: ${{ inputs.target-branch }}
+        target-branch-name-surffix: ${{ inputs.target-branch-name-surffix }}
+        pull-request-title: ${{ inputs.pull-request-title }}
+        pull-request-body: |
           doc source: ${{ inputs.base-template-url }}
-
-          > This pull request is trigger by bot, do not edit it directly
-        labels: |
-          ci:doc
+        github-token: ${{ inputs.github-token }}
