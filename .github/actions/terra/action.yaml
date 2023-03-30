@@ -4,7 +4,7 @@ inputs:
   terra-ref:
     description: terra repo ref
     required: true
-    default: "main"
+    default: "dev/test"
 
   target_repo:
     description: pull request target repo
@@ -41,8 +41,8 @@ inputs:
     required: true
     default: "lib/agora_rtc_engine.dart"
 
-  pre-terra-command:
-    description: The command before terra build
+  pre-pr-command:
+    description: The command before pr
 
   github-token:
     description: The github token
@@ -76,12 +76,6 @@ runs:
         brew install coreutils
       shell: bash
 
-    - name: Run command befor terra
-      if: ${{ inputs.pre-terra-command }}
-      run: ${{ inputs.pre-terra-command }}
-      working-directory: ${{ inputs.target_repo }}
-      shell: bash
-
     - name: Run terra
       run: |
         export PATH="/usr/local/opt/llvm/bin:$PATH"
@@ -91,6 +85,12 @@ runs:
           --output-dir=${{ github.workspace }}/${{ inputs.target_repo }}/${{ inputs.output-dir }} \
           --export-file-path=${{ github.workspace }}/${{ inputs.target_repo }}/${{ inputs.export-file-path }}
       working-directory: terra/terra-cli
+      shell: bash
+
+    - name: Run command befor pr
+      if: ${{ inputs.pre-pr-command }}
+      run: ${{ inputs.pre-pr-command }}
+      working-directory: ${{ inputs.target_repo }}
       shell: bash
 
     - name: Create Pull Request
