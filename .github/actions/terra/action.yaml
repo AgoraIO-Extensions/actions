@@ -68,13 +68,10 @@ runs:
       with:
         node-version: "16.x"
 
-    - uses: jwlawson/actions-setup-cmake@v1.13
-      with:
-        cmake-version: '3.16.x'
-
     - name: Setup
       run: |
         brew install coreutils
+        brew install cmake
       shell: bash
 
     - name: Run terra
