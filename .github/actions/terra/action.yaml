@@ -72,9 +72,10 @@ runs:
       with:
         cmake-version: '3.16.x'
 
-    - uses: KyleMayes/install-llvm-action@v1
-      with:
-        version: "15.x"
+    - name: Install llvm
+      run: |
+        brew install llvm@15
+      shell: bash
 
     - name: Run terra
       run: |
