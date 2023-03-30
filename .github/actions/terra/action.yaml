@@ -81,7 +81,7 @@ runs:
       run: |
         export PATH="/usr/local/opt/llvm/bin:$PATH"
         export CMAKE_C_COMPILER=$(xcrun -find cc)
-        export CMAKE_CXX_COMPILER=$(xcrun -find cxx)
+        export CMAKE_CXX_COMPILER=$(xcrun -find c++)
         npm install
         npm run build -- render-legacy \
           --config ${{ github.workspace }}/${{ inputs.target_repo }}/${{ inputs.config }} \
