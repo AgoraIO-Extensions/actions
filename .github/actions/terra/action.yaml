@@ -72,8 +72,9 @@ runs:
       with:
         cmake-version: '3.16.x'
 
-    - name: Install llvm
+    - name: Setup
       run: |
+        brew install coreutils
         brew install llvm@15
       shell: bash
 
