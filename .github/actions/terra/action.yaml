@@ -4,7 +4,7 @@ inputs:
   terra-ref:
     description: terra repo ref
     required: true
-    default: "dev/test"
+    default: "main"
 
   target_repo:
     description: pull request target repo
@@ -87,7 +87,7 @@ runs:
       working-directory: terra/terra-cli
       shell: bash
 
-    - name: Run command befor pr
+    - name: Run command before pr
       if: ${{ inputs.pre-pr-command }}
       run: ${{ inputs.pre-pr-command }}
       working-directory: ${{ inputs.target_repo }}
