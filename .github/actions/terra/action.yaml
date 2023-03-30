@@ -4,7 +4,7 @@ inputs:
   terra-ref:
     description: terra repo ref
     required: true
-    default: "main"
+    default: "dev/test"
 
   target_repo:
     description: pull request target repo
@@ -80,8 +80,6 @@ runs:
     - name: Run terra
       run: |
         export PATH="/usr/local/opt/llvm/bin:$PATH"
-        export CMAKE_C_COMPILER=$(xcrun -find cc)
-        export CMAKE_CXX_COMPILER=$(xcrun -find c++)
         npm install
         npm run build -- render-legacy \
           --config ${{ github.workspace }}/${{ inputs.target_repo }}/${{ inputs.config }} \
