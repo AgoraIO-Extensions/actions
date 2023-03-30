@@ -1,0 +1,101 @@
+name: terra
+description: Generate code 
+inputs:
+  terra-ref:
+    description: terra repo ref
+    required: true
+    default: "main"
+
+  target_repo:
+    description: pull request target repo
+    required: true
+    default: "AgoraIO-Extensions/Agora-Flutter-SDK"
+
+  target_branch:
+    description: pull request target branch
+    required: true
+    default: "main"
+
+  target_branch_name_surffix:
+    description: The surffix of the branch name, e.g., if terra-update, the branch name become main-terra-update
+    required: true
+    default: "terra-update"
+
+  pull_request_title:
+    description: The title of the pull request
+    required: true
+    default: "[AUTO] Generate code by terra"
+
+  config:
+    description: The config for terra
+    required: true
+    default: "terra_config.yaml"
+
+  output-dir:
+    description: The output dir
+    required: true
+    default: "lib/src"
+
+  export-file-path:
+    description: The export file path
+    required: true
+    default: "lib/agora_rtc_engine.dart"
+
+  github-token:
+    description: The github token
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Check out terra
+      uses: actions/checkout@v3
+      with:
+        token: ${{ inputs.github-token }}
+        repository: AgoraIO-Extensions/terra
+        ref: ${{ inputs.terra-ref }}
+        path: terra
+
+    - name: Check out build project
+      uses: actions/checkout@v3
+      with:
+        token: ${{ inputs.github-token }}
+        repository: ${{ inputs.target_repo }}
+        ref: ${{ inputs.target_branch }}
+        path: ${{ inputs.target_repo }}
+
+    - uses: actions/setup-node@v3
+      with:
+        node-version: "16.x"
+
+    - name: Run terra
+      run: |
+        npm install
+        npm run build -- render-legacy \
+          --config ${{ github.workspace }}/${{ inputs.target_repo }}/${{ inputs.config }} \
+          --output-dir=${{ github.workspace }}/${{ inputs.target_repo }}/${{ inputs.output-dir }} \
+          --export-file-path=${{ github.workspace }}/${{ inputs.target_repo }}/${{ inputs.export-file-path }}
+      working-directory: terra/terra-cli
+      shell: bash
+
+    - name: Create Pull Request
+      id: cpr
+      uses: peter-evans/create-pull-request@v4
+      with:
+        token: ${{ inputs.github-token }}
+        path: ${{ inputs.target_repo }}
+        commit-message: ${{ inputs.pull_request_title }}
+        committer: GitHub <noreply@github.com>
+        author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+        signoff: false
+        branch: "${{ inputs.target_branch }}-${{ inputs.target_branch_name_surffix }}"
+        base: ${{ inputs.target_branch }}
+        delete-branch: true
+        draft: false
+        title: ${{ inputs.pull_request_title }}
+        body: |
+          ${{ inputs.pull_request_title }}
+
+          > This pull request is trigger by bot, do not edit it directly
+        labels: |
+          ci:terra

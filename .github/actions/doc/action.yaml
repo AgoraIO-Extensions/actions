@@ -4,7 +4,7 @@ inputs:
   iris-doc-ref:
     description: iris-doc repo ref
     required: true
-    default: "dev/fix"
+    default: "main"
 
   target_repo:
     description: pull request target repo
@@ -85,7 +85,7 @@ runs:
       if: ${{ inputs.language == 'ts' }}
       shell: bash
 
-    - name: Run build macos
+    - name: Run iris doc
       run: |
         BASE_TEMPLATE_URL=${{ inputs.base-template-url }}
         MERGE_TEMPLATE_URL=${{ inputs.merge-template-url }}
