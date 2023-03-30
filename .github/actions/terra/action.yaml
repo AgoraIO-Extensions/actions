@@ -4,7 +4,7 @@ inputs:
   terra-ref:
     description: terra repo ref
     required: true
-    default: "dev/test"
+    default: "main"
 
   target_repo:
     description: pull request target repo
@@ -71,7 +71,6 @@ runs:
     - name: Setup
       run: |
         brew install coreutils
-        brew install cmake
       shell: bash
 
     - name: Run terra
