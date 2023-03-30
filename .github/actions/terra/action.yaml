@@ -110,7 +110,7 @@ runs:
 
     - name: Create pull request
       if: ${{ !inputs.target-path }}
-      uses: ./.github/actions/pr
+      uses: AgoraIO-Extensions/actions/.github/actions/pr@main
       with:
         target-repo: ${{ inputs.target-repo }}
         target-branch: ${{ inputs.target-branch }}
