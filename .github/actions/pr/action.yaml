@@ -21,6 +21,12 @@ inputs:
     description: The body of the pull request
     required: true
     default: ""
+    
+  add-paths:
+    description: >
+      A comma or newline-separated list of file paths to commit.
+      Paths should follow git's pathspec syntax.
+      Defaults to adding all new and modified files.
 
   github-token:
     description: The github token
@@ -34,6 +40,7 @@ runs:
       with:
         token: ${{ inputs.github-token }}
         path: ${{ inputs.target-repo }}
+        add-paths: ${{ inputs.add-paths }}
         commit-message: ${{ inputs.pull-request-title }}
         committer: GitHub <noreply@github.com>
         author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
