@@ -97,9 +97,9 @@ runs:
         fi
 
         npm run build -- render-legacy \
-          --config "${TARGET_PATH}/${{ inputs.config }}" \
-          --output-dir="${TARGET_PATH}/${{ inputs.output-dir }}" \
-          --export-file-path="${TARGET_PATH}/${{ inputs.export-file-path }}"
+          --config ${TARGET_PATH}/${{ inputs.config }} \
+          --output-dir=${TARGET_PATH}/${{ inputs.output-dir }} \
+          --export-file-path=${TARGET_PATH}/${{ inputs.export-file-path }}
       working-directory: terra/terra-cli
       shell: bash
 
