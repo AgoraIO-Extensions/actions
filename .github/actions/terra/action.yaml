@@ -76,7 +76,7 @@ runs:
         node-version: "16.x"
 
     - name: Setup
-      if: ${{ runner.os == macOS }}
+      if: ${{ runner.os == 'macOS' }}
       run: |
         brew install coreutils
       shell: bash
