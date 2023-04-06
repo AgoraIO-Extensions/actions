@@ -4,7 +4,7 @@ inputs:
   terra-ref:
     description: The terra repo ref
     required: true
-    default: "revert-61-littlegnal/revert-ubuntu-support"
+    default: "main"
 
   target-repo:
     description: The pull request target repo
