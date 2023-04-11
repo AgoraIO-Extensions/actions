@@ -62,6 +62,11 @@ runs:
         ref: ${{ inputs.terra-ref }}
         path: terra
 
+    - name: Setup git submodule
+      run: |
+        git submodule update --init
+      shell: bash
+
     - name: Checkout build project
       if: ${{ !inputs.target-path }}
       uses: actions/checkout@v3
