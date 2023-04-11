@@ -68,6 +68,12 @@ runs:
       working-directory: terra
       shell: bash
 
+    - name: Setup iris-doc
+      run: |
+        python3 -m pip install -r requirements.txt
+      working-directory: terra/third_party/iris-doc
+      shell: bash
+
     - name: Checkout build project
       if: ${{ !inputs.target-path }}
       uses: actions/checkout@v3
