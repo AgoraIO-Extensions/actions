@@ -79,14 +79,14 @@ runs:
       if: ${{ runner.os == 'macOS' }}
       run: |
         brew install coreutils
-        brew install llvm
+        brew install llvm@15
       shell: bash
 
     - name: Run terra
       run: |
         set -x
 
-        export PATH="/usr/local/opt/llvm/bin:$PATH"
+        export PATH="/usr/local/opt/llvm@15/bin:$PATH"
 
         npm install
 
