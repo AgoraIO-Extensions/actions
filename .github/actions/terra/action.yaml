@@ -65,6 +65,7 @@ runs:
     - name: Setup git submodule
       run: |
         git submodule update --init
+      working-directory: terra
       shell: bash
 
     - name: Checkout build project
