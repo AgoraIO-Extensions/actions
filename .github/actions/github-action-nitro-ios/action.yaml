@@ -42,7 +42,7 @@ inputs:
     description: "Team ID. Specify the Team ID you want to use for the Apple Developer Portal"
   export-method:
     description: "Export Method. The export method used to generate the IPA. Available Options: (`ad-hoc`, `app-store`, `development`, `enterprise`)"
-    default: "development"
+    default: "ad-hoc"
 
   # Caching
   cache-provider:
