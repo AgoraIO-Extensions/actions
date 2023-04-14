@@ -1,0 +1,336 @@
+name: "Nitro build tool for iOS"
+description: "A Gihub Action for building React Native apps with Nitro"
+branding:
+  icon: "zap"
+  color: "gray-dark"
+inputs:
+  # Basic configuration
+  root-directory:
+    description: The directory within your project, in which your code is located. Leave this field empty if your code is not located in a subdirectory"
+    default: "."
+  scheme:
+    description: "The name of the iOS scheme"
+  xcconfig-path:
+    description: "Path to a custom xcconfig file. The path relative to project root directory where the custom `.xcconfig` file is located"
+
+  # App Versioning
+  version-name:
+    description: "The version name for the app"
+  version-code:
+    description: "The version code for the app"
+  disable-version-name-from-package-json:
+    description: "Disable automatic version name configuration. By default will get the 'version' field from package.json and set the version name. Available Options: (`yes` / `no`)"
+  disable-version-code-auto-generation:
+    description: "Disable automatic version code generation. By default will generate a timestamp based number and set the version code. Available Options: (`yes` / `no`)"
+
+  # App Signing
+  certificate-url:
+    description: "Certificate url. The url to download and install the certificate"
+  certificate-base64:
+    description: "Certificate base64. The certificate base64 string enconded."
+  certificate-passphrase:
+    description: "Certificate passphrase"
+  codesigning-identity:
+    description: "Codesigning identity"
+  provisioning-profile-urls:
+    description: "Provisioning profile urls. A string containing a '|' separated values where provisioning profiles are located (e.g. `url1|url2``)"
+  provisioning-profiles-base64:
+    description: "Provisioning profiles in base64 format. A string containing a '|' separated values with provisioning profiles base64 encoded (e.g. `bXktcHJvdmlzaW9uaW5nLXByb2ZpbGUtY29udGVudC0x|bXktcHJvdmlzaW9uaW5nLXByb2ZpbGUtY29udGVudC0y`)"
+  provisioning-profile-specifier:
+    description: "Provisioning profile specifier. The name of the provisioning profile when using a single one"
+  team-id:
+    description: "Team ID. Specify the Team ID you want to use for the Apple Developer Portal"
+  export-method:
+    description: "Export Method. The export method used to generate the IPA. Available Options: (`ad-hoc`, `app-store`, `development`, `enterprise`)"
+    default: "ad-hoc"
+
+  # Caching
+  cache-provider:
+    description: "Cache provider where cache artifacts will be persisted. Available Options: (`fs`: File system / `github`: Uses Github cache action / `s3`: Amazon - Simple Storage Service)"
+    default: "s3"
+  disable-cache:
+    description: "When setting this option to `yes` build cache optimizations won't be performed.  Available Options: (`yes` / `no`)"
+  cache-env-var-lookup-keys:
+    description: "List of env var keys for lookup to determine cache fingerprint. A list of `\\|` separated values with env variable keys to lookup to determine whether the build should be cached or not"
+  cache-file-lookup-paths:
+    description: "List of files for lookup to determine cache fingerprint. A list of `\\|` separated value paths (relative to the root of the repo or absolute) to lookup in order to determine whether the build should be cached or not"
+  disable-metro-cache:
+    description: "Setting this field to yes will disable the React Native Metro cache feature"
+
+  # Hooks
+  pre-install-command:
+    description: "Run command prior to install project dependencies (e.g. `rm -rf ./some-folder`)"
+
+  pre-build-command:
+    description: "Run command prior to start building the app (e.g. `yarn tsc && yarn test`)"
+
+  post-build-command:
+    description: "Run command once build successfully finished (e.g. `yarn publish`)"
+
+  # Advanced
+  output-directory:
+    description: "The path to the directory where to place all of Nitro's output files"
+  entry-file:
+    description: "The entry file for bundle generation"
+  detox-configuration:
+    description: "Select a device configuration from your defined configurations"
+  debug:
+    description: "Enable verbose logs. Available Options: (`yes` / `no`)"
+  fail-safe:
+    description: "Runing the app in this mode allows you to prevent the build to fail but you can check the status in further steps"
+outputs:
+  nitro-build-status:
+    description: "The status of the latest build (success / failure)"
+    value: ${{ steps.nitro-cli.outputs.nitro-build-status }}
+  nitro-output-dir:
+    description: "The path to the directory where to place all of Nitro's output files"
+    value: ${{ steps.nitro-cli.outputs.nitro-output-dir }}
+  nitro-logs-path:
+    description: "The full path to access the build log"
+    value: ${{ steps.nitro-cli.outputs.nitro-logs-path }}
+  nitro-summary-path:
+    description: "The full path to access the build summary report"
+    value: ${{ steps.nitro-cli.outputs.nitro-summary-path }}
+  nitro-app-path:
+    description: "The full path to access the iOS package (.app or .ipa)"
+    value: ${{ steps.nitro-cli.outputs.nitro-app-path }}
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Ruby
+      uses: ruby/setup-ruby@v1
+    - name: Install Homebrew dependencies
+      shell: bash
+      run: |
+        brew update --preinstall
+        env HOMEBREW_NO_AUTO_UPDATE=1 brew install pigz coreutils fastlane xcbeautify jq
+    - name: Run Nitro CLI
+      id: nitro-cli
+      shell: bash
+      run: |
+        #!/bin/bash
+
+        # Do not exit on errors. If "safe mode" is not enabled it will exit properly at the end.
+        set +e
+
+        # shellcheck disable=SC2154
+        if [[ "${{ inputs.debug }}" == "true" || "${{ inputs.debug }}" == "yes" ]]; then
+          set -x
+        fi
+
+        if [[ -n "${{ inputs.entry-file }}" ]]; then
+          export ENTRY_FILE="${{ inputs.entry-file }}"
+        fi
+
+        # Build command arguments
+        args=("ios")
+        args+=("--output-format" "json")
+
+        # shellcheck disable=SC2154
+        if [[ "${{ inputs.debug }}" == "true" || "${{ inputs.debug }}" == "yes" ]]; then
+          args+=("--verbose")
+        fi
+
+        args+=("--repo-path" "${GITHUB_WORKSPACE}")
+
+        # -------------------
+        # Basic configuration
+        # -------------------
+
+        if [[ -n "${{ inputs.root-directory }}" ]]; then
+          args+=("--root-directory" "${{ inputs.root-directory }}")
+        fi
+
+        if [[ -n "${{ inputs.scheme }}" ]]; then
+          args+=("--scheme" "${{ inputs.scheme }}")
+        fi
+
+        if [[ -n "${{ inputs.xcconfig-path }}" ]]; then
+          args+=("--xcconfig-path" "${{ inputs.xcconfig-path }}")
+        fi
+
+        # --------------
+        # App Versioning
+        # --------------
+
+        if [[ -n "${{ inputs.version-name }}" ]]; then
+          args+=("--version-name" "${{ inputs.version-name }}")
+        fi
+
+        if [[ -n "${{ inputs.version-code }}" ]]; then
+          args+=("--version-code" "${{ inputs.version-code }}")
+        fi
+
+        # shellcheck disable=SC2154
+        if [[ "${{ inputs.disable-version-name-from-package-json }}" == "true" || "${{ inputs.disable-version-name-from-package-json }}" == "yes" ]]; then
+          args+=("--disable-version-name-from-package-json")
+        fi
+
+        # shellcheck disable=SC2154
+        if [[ "${{ inputs.disable-version-code-auto-generation }}" == "true" || "${{ inputs.disable-version-code-auto-generation }}" == "yes" ]]; then
+          args+=("--disable-version-code-auto-generation")
+        fi
+
+        # -----------
+        # App Signing
+        # -----------
+
+        if [[ 
+            -n "${{ inputs.certificate-base64 }}" || 
+            -n "${{ inputs.certificate-url }}" ||
+            -n "${{ inputs.certificate-passphrase }}" ||
+            -n "${{ inputs.codesigning-identity }}" ||
+            -n "${{ inputs.provisioning-profiles-base64 }}" ||
+            -n "${{ inputs.provisioning-profile-urls }}" ||
+            -n "${{ inputs.provisioning-profile-specifier }}"
+        ]]; then
+          if [[ -n "${{ inputs.certificate-base64 }}" && -n "${{ inputs.certificate-url }}" ]]; then
+            echo "⚠️ You cannot provide both: 'certificate-base64' and 'certificate-url'"
+            exit 1
+          fi
+
+          if [[ -n "${{ inputs.certificate-base64 }}" ]]; then
+            echo -n "${{ inputs.certificate-base64 }}" | base64 --decode --output "${RUNNER_TEMP}/certificate.p12"
+            args+=("--certificate-url" "file://${RUNNER_TEMP}/certificate.p12")
+          else
+            args+=("--certificate-url" "${{ inputs.certificate-url }}")
+          fi
+
+          if [[ -n "${{ inputs.certificate-passphrase }}" ]]; then
+            args+=("--certificate-passphrase" '${{ inputs.certificate-passphrase }}')
+          fi
+
+          if [[ -n "${{ inputs.codesigning-identity }}" ]]; then
+            args+=("--codesigning-identity" "${{ inputs.codesigning-identity }}")
+          fi
+
+          if [[ -n "${{ inputs.provisioning-profile-urls }}" && -n "${{ inputs.provisioning-profiles-base64 }}" ]]; then
+            echo "⚠️ You cannot provide both 'provisioning-profile-urls' and 'provisioning-profiles-base64'"
+            exit 1
+          fi
+
+          if [[ -n "${{ inputs.provisioning-profile-urls }}" ]]; then
+            IFS='|' ios_provisioning_profile_urls_array=("${{ inputs.provisioning-profile-urls }}")
+          else
+            if [[ -n "${{ inputs.provisioning-profiles-base64 }}" ]]; then
+              IFS='|' ios_provisioning_profiles_base64_array=("${{ inputs.provisioning-profiles-base64 }}")
+
+              for i in "${!ios_provisioning_profiles_base64_array[@]}"
+              do
+                  provisioning_profile_base64=${ios_provisioning_profiles_base64_array[$i]}
+                  echo -n "${provisioning_profile_base64}" | base64 --decode --output "${RUNNER_TEMP}/${i}.mobileprovision"
+                  ios_provisioning_profile_urls_array+=("file://${RUNNER_TEMP}/${i}.mobileprovision")
+              done
+            fi
+          fi
+
+          # shellcheck disable=SC2206
+          args+=("--provisioning-profile-urls" ${ios_provisioning_profile_urls_array[@]})
+
+          if [[ -n "${{ inputs.provisioning-profile-specifier }}" ]]; then
+            args+=("--provisioning-profile-specifier" "${{ inputs.provisioning-profile-specifier }}")
+          fi
+
+          if [[ -n "${{ inputs.team-id }}" ]]; then
+            args+=("--team-id" "${{ inputs.team-id }}")
+          fi
+
+          if [[ -n "${{ inputs.export-method }}" ]]; then
+            args+=("--export-method" "${{ inputs.export-method }}")
+          fi
+        fi
+
+        # -------
+        # Caching
+        # -------
+
+        if [[ -n "${{ inputs.cache-provider }}" ]]; then
+          args+=("--cache-provider" "${{ inputs.cache-provider }}")
+        fi
+
+        # shellcheck disable=SC2154
+        if [[ "${{ inputs.disable-cache }}" == "true" || "${{ inputs.disable-cache }}" == "yes" ]]; then
+          args+=("--disable-cache")
+        fi
+
+        if [[ -n "${{ inputs.cache-env-var-lookup-keys }}" ]]; then
+          IFS='|' cache_env_var_lookup_keys_value=("${{ inputs.cache-env-var-lookup-keys }}")
+          # shellcheck disable=SC2206
+          args+=("--cache-env-var-lookup-keys" ${cache_env_var_lookup_keys_value[@]})
+        fi
+
+        if [[ -n "${{ inputs.cache-file-lookup-paths }}" ]]; then
+          IFS='|' cache_file_lookup_paths_value=("${{ inputs.cache-file-lookup-paths }}")
+          # shellcheck disable=SC2206
+          args+=("--cache-file-lookup-paths" ${cache_file_lookup_paths_value[@]})
+        fi
+
+        # shellcheck disable=SC2154
+        if [[ "${{ inputs.disable-metro-cache }}" == "true" || "${{ inputs.disable-metro-cache }}" == "yes" ]]; then
+          args+=("--disable-metro-cache")
+        fi
+
+        # -----
+        # Hooks
+        # -----
+
+        if [[ -n "${{ inputs.pre-install-command }}" ]]; then
+          args+=("--pre-install-command" "${{ inputs.pre-install-command }}")
+        fi
+
+        if [[ -n "${{ inputs.pre-build-command }}" ]]; then
+          args+=("--pre-build-command" "${{ inputs.pre-build-command }}")
+        fi
+
+        if [[ -n "${{ inputs.post-build-command }}" ]]; then
+          args+=("--post-build-command" "${{ inputs.post-build-command }}")
+        fi
+
+        # --------
+        # Advanced
+        # --------
+
+        if [[ -n "${{ inputs.output-directory }}" ]]; then
+          args+=("--output-directory" "${{ inputs.output-directory }}")
+        fi
+
+        if [[ -n "${{ inputs.detox-configuration }}" ]]; then
+          args+=("--detox-configuration" "${{ inputs.detox-configuration }}")
+        fi
+
+        # -------------------
+        # Nitro Cli execution
+        # -------------------
+
+        NITRO_OUTPUT_JSON_PATH="$(pwd)/nitro-output.json"
+        npx @nitro-build/cli@^0.11.0 "${args[@]}"
+        exit_code=$?
+
+        # Set environment variables using envman
+        if [[ exit_code -ne 0 ]]; then
+          echo "nitro-build-status=failed" >> $GITHUB_OUTPUT
+        else
+          echo "nitro-build-status=success" >> $GITHUB_OUTPUT
+        fi
+
+        if [ -f "${NITRO_OUTPUT_JSON_PATH}" ]; then
+          output=$(cat < "${NITRO_OUTPUT_JSON_PATH}")
+
+          echo "${output}" | jq -r '.appPath' | xargs -I{} echo "nitro-app-path={}" >> $GITHUB_OUTPUT
+          echo "${output}" | jq -r '.outputDir' | xargs -I{} echo "nitro-output-dir={}" >> $GITHUB_OUTPUT
+          echo "${output}" | jq -r '.summaryPath' | xargs -I{} echo "nitro-summary-path={}" >> $GITHUB_OUTPUT
+          echo "${output}" | jq -r '.logsPath' | xargs -I{} echo "nitro-logs-path={}" >> $GITHUB_OUTPUT
+        else
+          echo "File not found: ${NITRO_OUTPUT_JSON_PATH}"
+        fi
+
+        # shellcheck disable=SC2154
+        if [[ "${{ inputs.fail-safe }}" == "true" || "${{ inputs.fail-safe }}" == "yes" ]]; then
+          if [[ exit_code -ne 0 ]]; then
+            echo "⚠️ Nitro has thrown a '${exit_code}' error code while running on fail-safe mode. You can check 'nitro-build-status' output value in further steps."
+          fi  
+        else
+          # If not running in "safe mode" exit with captured exit_code
+          set -e
+          exit $exit_code
+        fi
