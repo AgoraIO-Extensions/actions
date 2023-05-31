@@ -42,7 +42,7 @@ inputs:
   base-template-url:
     description: The base template url
     required: true
-    default: "https://github.com/AgoraIO/agora_doc_source/releases/download/main/flutter_ng_json_template_en.json"
+    default: "https://github.com/AgoraIO/agora_doc_source/releases/download/master-build/flutter_ng_json_template_en.json"
 
   merge-template-url:
     description: The template url to merge
