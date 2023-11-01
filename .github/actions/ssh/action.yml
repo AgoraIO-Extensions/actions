@@ -1,11 +1,15 @@
 name: SSH
+inputs:
+  private-key:
+    description: private key
+    required: true
 
 runs:
   using: composite
   steps:
     - name: Setup SSH
       env:
-        PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        PRIVATE_KEY: ${{ inputs.private-key }}
       run: |
         mkdir -p ~/.ssh
         echo "$PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
