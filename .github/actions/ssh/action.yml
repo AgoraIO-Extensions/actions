@@ -2,17 +2,14 @@ name: SSH
 inputs:
   private-key:
     description: private key
-    required: true
 
 runs:
   using: composite
   steps:
     - name: Setup SSH
-      env:
-        PRIVATE_KEY: ${{ inputs.private-key }}
       run: |
         mkdir -p ~/.ssh
-        echo "$PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+        echo "${{ inputs.private-key }}" | tr -d '\r' > ~/.ssh/id_rsa
         chmod 700 ~/.ssh/id_rsa
         eval $(ssh-agent -s)
         ssh-add ~/.ssh/id_rsa
