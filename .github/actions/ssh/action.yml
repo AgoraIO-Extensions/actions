@@ -2,11 +2,13 @@ name: SSH
 inputs:
   private-key:
     description: private key
+    required: true
 
 runs:
   using: composite
   steps:
     - name: Setup SSH
+      shell: bash
       run: |
         mkdir -p ~/.ssh
         echo "${{ inputs.private-key }}" | tr -d '\r' > ~/.ssh/id_rsa
