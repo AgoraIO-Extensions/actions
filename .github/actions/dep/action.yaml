@@ -2,7 +2,7 @@ name: dep
 description: Update dependencies
 inputs:
   dependencies-content:
-    description: The dependencies content
+    description: The content of dependencies
     required: true
     default: ""
 
@@ -52,7 +52,6 @@ runs:
         python3 dep.py ${{ inputs.dependencies-content }} ${{ inputs.target-path }}
 
     - name: Create pull request
-      if: ${{ !inputs.target-path }}
       uses: AgoraIO-Extensions/actions/.github/actions/pr@main
       with:
         target-repo: ${{ inputs.target-repo }}
