@@ -8,8 +8,8 @@ regx = [
     r"(.*(implementation|api)[\s]*)(['|\"]io\.agora\.rtc:full-screen-sharing(-special)?:[0-9a-zA-Z\.-]+['|\"])",
     r"(.*(pod|dependency)[\s]*)(['|\"]AgoraIrisRTC_iOS(_Beta)?['|\"],[\s]*['|\"][0-9a-zA-Z\.-]+['|\"])",
     r"(.*(pod|dependency)[\s]*)(['|\"]Agora(RtcEngine|Audio)(_Special)?_iOS(_Preview)?['|\"],[\s]*['|\"][0-9a-zA-Z\.-]+['|\"])",
-    r"(.*(CDN:|cdn:)[\s]*)(https://download\.agora\.io/sdk/release/iris_[0-9a-zA-Z\.-]+_DCG_Windows_(Video|Audio)_([0-9]+)_([0-9]+)\.zip)",
-    r"(.*(CDN:|cdn:)[\s]*)(https://download\.agora\.io/sdk/release/iris_[0-9a-zA-Z\.-]+_DCG_Mac_(Video|Audio)_([0-9]+)_([0-9]+)\.zip)",
+    r"(.*(CDN:)?[\s]*)(https://download\.agora\.io/sdk/release/iris_[0-9a-zA-Z\.-]+_DCG_Windows_(Video|Audio)_([0-9]+)_([0-9]+)\.zip)",
+    r"(.*(CDN:)?[\s]*)(https://download\.agora\.io/sdk/release/iris_[0-9a-zA-Z\.-]+_DCG_Mac_(Video|Audio)_([0-9]+)_([0-9]+)\.zip)",
     r"(.*(pod|dependency)[\s]*)(['|\"]AgoraIrisRTC_macOS(_Beta)?['|\"],[\s]*['|\"][0-9a-zA-Z\.-]+['|\"])",
     r"(.*(pod|dependency)[\s]*)(['|\"]Agora(RtcEngine|Audio)(_Special)?_macOS(_Preview)?['|\"],[\s]*['|\"][0-9a-zA-Z\.-]+['|\"])",
 ]
