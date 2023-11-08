@@ -68,10 +68,9 @@ runs:
           TARGET_PATH="${ROOT_PATH}/${{ inputs.target-repo }}"
         fi
 
-        MATCHES=$(python3 dep.py "${{ inputs.dependencies-content }}" "${TARGET_PATH}" "${{ inputs.target-files }}")
         {
           echo 'matches<<EOF'
-          ${MATCHES}
+          python3 dep.py "${{ inputs.dependencies-content }}" "${TARGET_PATH}" "${{ inputs.target-files }}"
           echo EOF
         } >> "$GITHUB_OUTPUT"
       working-directory: ${{ github.action_path }}
