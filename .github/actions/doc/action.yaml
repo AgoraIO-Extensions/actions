@@ -16,7 +16,7 @@ inputs:
   iris-doc-ref:
     description: The ref of terra repo will be used.
     required: true
-    default: "main"
+    default: "LichKing-2234-patch-1"
 
   config:
     description: The path of the `fmt.json` file.
