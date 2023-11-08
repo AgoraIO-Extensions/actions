@@ -1,4 +1,6 @@
 name: SSH
+description: Setup SSH key.
+
 inputs:
   private-key:
     description: private key
@@ -8,7 +10,6 @@ runs:
   using: composite
   steps:
     - name: Setup SSH
-      shell: bash
       run: |
         mkdir -p ~/.ssh
         echo "${{ inputs.private-key }}" | tr -d '\r' > ~/.ssh/id_rsa
@@ -16,3 +17,4 @@ runs:
         eval $(ssh-agent -s)
         ssh-add ~/.ssh/id_rsa
         ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+      shell: bash

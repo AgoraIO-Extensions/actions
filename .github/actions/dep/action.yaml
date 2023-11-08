@@ -1,41 +1,25 @@
 name: dep
-description: Update dependencies
+description: Update dependencies.
 
 inputs:
-  dependencies-content:
-    description: The content of dependencies
-    required: true
-    default: ""
-
-  target-files:
-    description: The files to update dependencies
+  github-token:
+    description: >
+      GITHUB_TOKEN (permissions contents: write and pull-requests: write) or a repo scoped Personal Access Token (PAT).
     required: true
 
   target-repo:
-    description: The pull request target repo
-    required: true
-    default: "AgoraIO-Extensions/Agora-Flutter-SDK"
+    description: Relative path under GITHUB_WORKSPACE to the repository.
 
   target-branch:
-    description: The pull request target branch
+    description: Sets the pull request base branch.
     required: true
-    default: "main"
 
-  target-path:
-    description: The path to update dependencies, if set, will skip clone & pr
-
-  target-branch-name-surffix:
-    description: The surffix of the branch name, e.g., if dep-update, the branch name become main-dep-update
+  dependencies-content:
+    description: The content of dependencies.
     required: true
-    default: "dep-update"
 
-  pull-request-title:
-    description: The title of the pull request
-    required: true
-    default: "[AUTO] Update dependencies"
-
-  github-token:
-    description: The github token
+  target-files:
+    description: The files to update dependencies
     required: true
 
 outputs:
@@ -46,8 +30,8 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Checkout build project
-      if: ${{ !inputs.target-path }}
+    - name: Checkout target repo
+      if: ${{ inputs.target-repo }}
       uses: actions/checkout@v3
       with:
         token: ${{ inputs.github-token }}
@@ -62,10 +46,10 @@ runs:
 
         ROOT_PATH="${{ github.workspace }}"
 
-        if [[ -n "${{ inputs.target-path }}" ]]; then
-          TARGET_PATH="${{ inputs.target-path }}"
-        else
+        if [[ -n "${{ inputs.target-repo }}" ]]; then
           TARGET_PATH="${ROOT_PATH}/${{ inputs.target-repo }}"
+        else
+          TARGET_PATH="${ROOT_PATH}"
         fi
 
         {
@@ -77,13 +61,15 @@ runs:
       shell: bash
 
     - name: Create pull request
-      if: ${{ !inputs.target-path }}
       uses: AgoraIO-Extensions/actions/.github/actions/pr@main
       with:
+        github-token: ${{ inputs.github-token }}
         target-repo: ${{ inputs.target-repo }}
         target-branch: ${{ inputs.target-branch }}
-        target-branch-name-surffix: ${{ inputs.target-branch-name-surffix }}
-        pull-request-title: ${{ inputs.pull-request-title }}
+        target-branch-name-surffix: dep-update
+        pull-request-title: |
+          [AUTO] Update dependencies
         pull-request-body: |
-          dependencies content: ${{ steps.dep.outputs.matches }}
-        github-token: ${{ inputs.github-token }}
+          Dependencies content: 
+          
+          ${{ steps.dep.outputs.matches }}

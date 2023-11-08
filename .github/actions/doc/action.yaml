@@ -1,60 +1,41 @@
 name: doc
-description: Generate comments
+description: Generate comments.
+
 inputs:
-  iris-doc-ref:
-    description: The iris-doc repo ref
+  github-token:
+    description: >
+      GITHUB_TOKEN (permissions contents: write and pull-requests: write) or a repo scoped Personal Access Token (PAT).
     required: true
-    default: "main"
 
   target-repo:
-    description: The pull request target repo
-    required: true
-    default: "AgoraIO-Extensions/Agora-Flutter-SDK"
+    description: Relative path under GITHUB_WORKSPACE to the repository.
 
   target-branch:
-    description: The pull request target branch
+    description: Sets the pull request base branch.
+    required: true
+
+  iris-doc-ref:
+    description: The ref of terra repo will be used.
     required: true
     default: "main"
 
-  target-path:
-    description: The path to generate comments, if set, will skip clone & pr
-
-  target-branch-name-surffix:
-    description: The surffix of the branch name, e.g., if doc-update, the branch name become main-doc-update
-    required: true
-    default: "doc-update"
-
-  pull-request-title:
-    description: The title of the pull request
-    required: true
-    default: "[AUTO] Generate comments by iris-doc"
-
   config:
-    description: The language config
+    description: The path of the `fmt.json` file.
     required: true
-    default: "fmt_config/fmt_dart.yaml"
 
   language:
-    description: The language
+    description: The name of programming language.
     required: true
-    default: "dart"
 
   base-template-url:
-    description: The base template url
+    description: The github release url of the template file, which allow set multiple times, the json will be merge in file order.
     required: true
-    default: "https://github.com/AgoraIO/agora_doc_source/releases/download/master-build/flutter_ng_json_template_en.json"
 
-  merge-template-url:
-    description: The template url to merge
-    default: ""
+  base-template-url2:
+    description: The extra input of base-template-url.
 
   export-file-path:
-    description: The export file path
-    required: true
-    default: "lib/agora_rtc_engine.dart"
-
-  github-token:
-    description: The github token
+    description: The path of the export file.
     required: true
 
 runs:
@@ -68,8 +49,8 @@ runs:
         ref: ${{ inputs.iris-doc-ref }}
         path: iris-doc
 
-    - name: Checkout build project
-      if: ${{ !inputs.target-path }}
+    - name: Checkout target repo
+      if: ${{ inputs.target-repo }}
       uses: actions/checkout@v3
       with:
         token: ${{ inputs.github-token }}
@@ -94,7 +75,7 @@ runs:
         python3 -m pip install -r requirements.txt
 
         BASE_TEMPLATE_URL="${{ inputs.base-template-url }}"
-        MERGE_TEMPLATE_URL="${{ inputs.merge-template-url }}"
+        MERGE_TEMPLATE_URL="${{ inputs.base-template-url2 }}"
         TEMPLATE_URL_ARGS="--template-url=${BASE_TEMPLATE_URL}"
 
         if [[ -n "${MERGE_TEMPLATE_URL}" ]]; then
@@ -103,25 +84,30 @@ runs:
 
         ROOT_PATH="${{ github.workspace }}"
 
-        if [[ -n "${{ inputs.target-path }}" ]]; then
-          TARGET_PATH="${{ inputs.target-path }}"
-        else
+        if [[ -n "${{ inputs.target-repo }}" ]]; then
           TARGET_PATH="${ROOT_PATH}/${{ inputs.target-repo }}"
+        else
+          TARGET_PATH="${ROOT_PATH}"
         fi
 
         EXPORT_FILE_PATH="${TARGET_PATH}/${{ inputs.export-file-path }}"
-        python3 iris_doc.py --config="${ROOT_PATH}/iris-doc/${{ inputs.config }}" --language="${{ inputs.language }}" --export-file-path=${EXPORT_FILE_PATH} ${TEMPLATE_URL_ARGS}
+        python3 iris_doc.py --config="${ROOT_PATH}/iris-doc/${{ inputs.config }}" \
+          --language="${{ inputs.language }}" \
+          --export-file-path=${EXPORT_FILE_PATH} \
+          ${TEMPLATE_URL_ARGS}
       working-directory: iris-doc
       shell: bash
 
     - name: Create pull request
-      if: ${{ !inputs.target-path }}
       uses: AgoraIO-Extensions/actions/.github/actions/pr@main
       with:
+        github-token: ${{ inputs.github-token }}
         target-repo: ${{ inputs.target-repo }}
         target-branch: ${{ inputs.target-branch }}
-        target-branch-name-surffix: ${{ inputs.target-branch-name-surffix }}
-        pull-request-title: ${{ inputs.pull-request-title }}
+        target-branch-name-surffix: doc-update
+        pull-request-title: |
+          [AUTO] Generate comments by iris-doc
         pull-request-body: |
-          doc source: ${{ inputs.base-template-url }}
-        github-token: ${{ inputs.github-token }}
+          Doc source:
+          
+          ${{ inputs.base-template-url }}

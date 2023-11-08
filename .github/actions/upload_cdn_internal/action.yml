@@ -1,19 +1,18 @@
 name: CDN
+description: Upload github release assets to CDN.
+
 inputs:
   upload_cdn_internal_jenkins_hook:
     description: The upload cdn internal jenkins hook
     required: true
-    type: string
 
   url:
     description: The github release artifact url
-    type: string
     required: true
 
   release_type:
     description: The release type of CDN
-    default: 'demo-test'
-    type: string
+    default: "demo-test"
 
 runs:
   using: composite

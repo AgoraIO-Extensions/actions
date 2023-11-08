@@ -1,12 +1,17 @@
 name: pr
-description: Create pull request
+description: Create pull request.
+
 inputs:
-  target-repo:
-    description: The pull request target repo
+  github-token:
+    description: >
+      GITHUB_TOKEN (permissions contents: write and pull-requests: write) or a repo scoped Personal Access Token (PAT).
     required: true
 
+  target-repo:
+    description: Relative path under GITHUB_WORKSPACE to the repository.
+
   target-branch:
-    description: The pull request target branch
+    description: Sets the pull request base branch.
     required: true
 
   target-branch-name-surffix:
@@ -14,23 +19,20 @@ inputs:
     required: true
 
   pull-request-title:
-    description: The title of the pull request
+    description: The title of the pull request.
     required: true
 
   pull-request-body:
-    description: The body of the pull request
+    description: The body of the pull request.
     required: true
     default: ""
-    
+
   add-paths:
     description: >
       A comma or newline-separated list of file paths to commit.
       Paths should follow git's pathspec syntax.
-      Defaults to adding all new and modified files.
-
-  github-token:
-    description: The github token
-    required: true
+      If no paths are specified, all new and modified files are added.
+      See Add specific paths.
 
 runs:
   using: composite
@@ -42,19 +44,9 @@ runs:
         path: ${{ inputs.target-repo }}
         add-paths: ${{ inputs.add-paths }}
         commit-message: ${{ inputs.pull-request-title }}
-        committer: GitHub <noreply@github.com>
-        author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
-        signoff: false
         branch: "${{ inputs.target-branch }}-${{ inputs.target-branch-name-surffix }}"
-        base: ${{ inputs.target-branch }}
         delete-branch: true
-        draft: false
+        base: ${{ inputs.target-branch }}
         title: ${{ inputs.pull-request-title }}
-        body: |
-          ${{ inputs.pull-request-title }}
-
-          ${{ inputs.pull-request-body }}
-
-          > This pull request is trigger by bot, do not edit it directly
-        labels: |
-          ci:${{ inputs.target-branch-name-surffix }}
+        body: ${{ inputs.pull-request-body }}
+        labels: ci:${{ inputs.target-branch-name-surffix }}

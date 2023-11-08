@@ -1,55 +1,38 @@
 name: terra
-description: Generate codes
+description: Generate codes.
+
 inputs:
-  terra-ref:
-    description: The terra repo ref
+  github-token:
+    description: >
+      GITHUB_TOKEN (permissions contents: write and pull-requests: write) or a repo scoped Personal Access Token (PAT).
     required: true
-    default: "main"
 
   target-repo:
-    description: The pull request target repo
-    required: true
-    default: "AgoraIO-Extensions/Agora-Flutter-SDK"
+    description: Relative path under GITHUB_WORKSPACE to the repository.
 
   target-branch:
-    description: The pull request target branch
+    description: Sets the pull request base branch.
+    required: true
+
+  terra-ref:
+    description: The ref of terra repo will be used.
     required: true
     default: "main"
 
-  target-path:
-    description: The path to generate codes, if set, will skip clone & pr
-
-  target-branch-name-surffix:
-    description: The surffix of the branch name, e.g., if terra-update, the branch name become main-terra-update
-    required: true
-    default: "terra-update"
-
-  pull-request-title:
-    description: The title of the pull request
-    required: true
-    default: "[AUTO] Generate code by terra"
-
   config:
-    description: The config for terra
+    description: The terra-cli yaml config file path, e.g., terra-config.yaml.
     required: true
-    default: "terra_config.yaml"
 
   output-dir:
-    description: The output dir
+    description: The output directory.
     required: true
-    default: "lib/src"
 
   export-file-path:
-    description: The export file path
+    description: The export file path of iris_doc command.
     required: true
-    default: "lib/agora_rtc_engine.dart"
 
   pre-pr-command:
-    description: The command before pr
-
-  github-token:
-    description: The github token
-    required: true
+    description: The bash script will run before create pull request.
 
 runs:
   using: composite
@@ -62,8 +45,8 @@ runs:
         ref: ${{ inputs.terra-ref }}
         path: terra
 
-    - name: Checkout build project
-      if: ${{ !inputs.target-path }}
+    - name: Checkout target repo
+      if: ${{ inputs.target-repo }}
       uses: actions/checkout@v3
       with:
         token: ${{ inputs.github-token }}
@@ -83,6 +66,7 @@ runs:
       shell: bash
 
     - name: Run terra
+      id: terra
       run: |
         set -x
 
@@ -92,16 +76,22 @@ runs:
 
         ROOT_PATH="${{ github.workspace }}"
 
-        if [[ -n "${{ inputs.target-path }}" ]]; then
-          TARGET_PATH="${{ inputs.target-path }}"
-        else
+        if [[ -n "${{ inputs.target-repo }}" ]]; then
           TARGET_PATH="${ROOT_PATH}/${{ inputs.target-repo }}"
+        else
+          TARGET_PATH="${ROOT_PATH}"
         fi
 
         npm run build -- render-legacy \
           --config ${TARGET_PATH}/${{ inputs.config }} \
           --output-dir=${TARGET_PATH}/${{ inputs.output-dir }} \
           --export-file-path=${TARGET_PATH}/${{ inputs.export-file-path }}
+
+        {
+          echo 'configuration<<EOF'
+          cat "${TARGET_PATH}/${{ inputs.config }}"
+          echo EOF
+        } >> "$GITHUB_OUTPUT"
       working-directory: terra/terra-cli
       shell: bash
 
@@ -112,11 +102,15 @@ runs:
       shell: bash
 
     - name: Create pull request
-      if: ${{ !inputs.target-path }}
       uses: AgoraIO-Extensions/actions/.github/actions/pr@main
       with:
+        github-token: ${{ inputs.github-token }}
         target-repo: ${{ inputs.target-repo }}
         target-branch: ${{ inputs.target-branch }}
-        target-branch-name-surffix: ${{ inputs.target-branch-name-surffix }}
-        pull-request-title: ${{ inputs.pull-request-title }}
-        github-token: ${{ inputs.github-token }}
+        target-branch-name-surffix: terra-update
+        pull-request-title: |
+          [AUTO] Generate codes by terra
+        pull-request-body: |
+          Terra configuration:
+
+          ${{ steps.terra.outputs.configuration }} 
