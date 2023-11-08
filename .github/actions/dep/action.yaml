@@ -1,0 +1,64 @@
+name: dep
+description: Update dependencies
+inputs:
+  dependencies-content:
+    description: The dependencies content
+    required: true
+    default: ""
+
+  target-repo:
+    description: The pull request target repo
+    required: true
+    default: "AgoraIO-Extensions/Agora-Flutter-SDK"
+
+  target-branch:
+    description: The pull request target branch
+    required: true
+    default: "main"
+
+  target-path:
+    description: The path to update dependencies, if set, will skip clone & pr
+
+  target-branch-name-surffix:
+    description: The surffix of the branch name, e.g., if dep-update, the branch name become main-dep-update
+    required: true
+    default: "dep-update"
+
+  pull-request-title:
+    description: The title of the pull request
+    required: true
+    default: "[AUTO] Update dependencies"
+
+  github-token:
+    description: The github token
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout build project
+      if: ${{ !inputs.target-path }}
+      uses: actions/checkout@v3
+      with:
+        token: ${{ inputs.github-token }}
+        repository: ${{ inputs.target-repo }}
+        ref: ${{ inputs.target-branch }}
+        path: ${{ inputs.target-repo }}
+
+    - name: Update dependencies
+      shell: bash
+      run: |
+        echo $PWD
+        python3 dep.py ${{ inputs.dependencies-content }} ${{ inputs.target-path }}
+
+    - name: Create pull request
+      if: ${{ !inputs.target-path }}
+      uses: AgoraIO-Extensions/actions/.github/actions/pr@main
+      with:
+        target-repo: ${{ inputs.target-repo }}
+        target-branch: ${{ inputs.target-branch }}
+        target-branch-name-surffix: ${{ inputs.target-branch-name-surffix }}
+        pull-request-title: ${{ inputs.pull-request-title }}
+        pull-request-body: |
+          dependencies content: ${{ inputs.dependencies-content }}
+        github-token: ${{ inputs.github-token }}
