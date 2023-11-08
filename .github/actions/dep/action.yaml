@@ -12,7 +12,6 @@ inputs:
 
   target-branch:
     description: Sets the pull request base branch.
-    required: true
 
   dependencies-content:
     description: The content of dependencies.
@@ -61,6 +60,7 @@ runs:
       shell: bash
 
     - name: Create pull request
+      if: ${{ inputs.target-branch }}
       uses: AgoraIO-Extensions/actions/.github/actions/pr@main
       with:
         github-token: ${{ inputs.github-token }}
