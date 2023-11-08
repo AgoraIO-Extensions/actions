@@ -1,5 +1,6 @@
 import re
 import sys
+import os
 
 regx = [
     r"(.*(implementation|api)[\s]*)(['|\"]io\.agora\.rtc:iris-rtc.*:[0-9a-zA-Z\.-]+['|\"])",
@@ -44,5 +45,5 @@ def replace(path: str):
 
 match(sys.argv[1])
 
-for path in sys.argv[2].splitlines():
-    replace(path)
+for path in sys.argv[3].splitlines():
+    replace(os.path.join(sys.argv[2], path))

@@ -6,6 +6,10 @@ inputs:
     required: true
     default: ""
 
+  target-files:
+    description: The files to update dependencies
+    required: true
+
   target-repo:
     description: The pull request target repo
     required: true
@@ -46,10 +50,22 @@ runs:
         path: ${{ inputs.target-repo }}
 
     - name: Update dependencies
-      shell: python3
-      run: dep.py ${{ inputs.dependencies-content }} ${{ inputs.target-path }}
+      run: |
+        set -x
+
+        ROOT_PATH="${{ github.workspace }}"
+
+        if [[ -n "${{ inputs.target-path }}" ]]; then
+          TARGET_PATH="${{ inputs.target-path }}"
+        else
+          TARGET_PATH="${ROOT_PATH}/${{ inputs.target-repo }}"
+        fi
+
+        python3 dep.py ${{ inputs.dependencies-content }} ${ROOT_PATH} ${{ inputs.target-files }}
+      shell: bash
 
     - name: Create pull request
+      if: ${{ !inputs.target-path }}
       uses: AgoraIO-Extensions/actions/.github/actions/pr@main
       with:
         target-repo: ${{ inputs.target-repo }}
