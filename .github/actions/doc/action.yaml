@@ -37,6 +37,9 @@ inputs:
     description: The path of the export file.
     required: true
 
+  pre-pr-command:
+    description: The bash script will run before create pull request.
+
 runs:
   using: composite
   steps:
@@ -95,6 +98,12 @@ runs:
           --export-file-path=${EXPORT_FILE_PATH} \
           ${TEMPLATE_URL_ARGS}
       working-directory: iris-doc
+      shell: bash
+
+    - name: Run command before pr
+      if: ${{ inputs.pre-pr-command }}
+      run: ${{ inputs.pre-pr-command }}
+      working-directory: ${{ inputs.target-repo }}
       shell: bash
 
     - name: Create pull request
