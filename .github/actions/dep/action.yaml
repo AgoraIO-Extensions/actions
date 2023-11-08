@@ -61,7 +61,7 @@ runs:
           TARGET_PATH="${ROOT_PATH}/${{ inputs.target-repo }}"
         fi
 
-        python3 dep.py ${{ inputs.dependencies-content }} ${ROOT_PATH} ${{ inputs.target-files }}
+        python3 ${{ github.action_path }}/dep.py ${{ inputs.dependencies-content }} ${ROOT_PATH} ${{ inputs.target-files }}
       shell: bash
 
     - name: Create pull request
