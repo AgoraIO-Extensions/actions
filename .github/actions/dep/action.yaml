@@ -46,10 +46,8 @@ runs:
         path: ${{ inputs.target-repo }}
 
     - name: Update dependencies
-      shell: bash
-      run: |
-        echo $PWD
-        python3 dep.py ${{ inputs.dependencies-content }} ${{ inputs.target-path }}
+      shell: python3
+      run: dep.py ${{ inputs.dependencies-content }} ${{ inputs.target-path }}
 
     - name: Create pull request
       uses: AgoraIO-Extensions/actions/.github/actions/pr@main
