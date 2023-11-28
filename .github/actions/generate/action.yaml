@@ -45,6 +45,7 @@ runs:
     - name: prepare terra environment
       run: |
         yarn
+      shell: bash
       working-directory: ${{ inputs.working-directory }}
 
     - name: Generate code
