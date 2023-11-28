@@ -1,0 +1,67 @@
+name: generate by terra
+description: generate code or comment
+inputs:
+  generate-code:
+    description: is generate code
+    required: false
+    type: boolean
+    default: true
+
+  generate-comment:
+    description: is generate comment
+    required: false
+    type: boolean
+    default: true
+
+  working-directory:
+    description: working-directory
+    required: true
+    default: "scripts/terra"
+
+  generate-code-command:
+    description: The bash script will run when generate code.
+
+  generate-comment-command:
+    description: The bash script will run when generate comment.
+
+  github-token:
+    description: The github token
+    required: true
+
+runs:
+  using: composite
+  steps:
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: "18.x"
+
+    - name: Reconfigure git to use HTTP authentication
+      run: >
+        git config --global url."https://${{ inputs.github-token }}@github.com/".insteadOf ssh://git@github.com/
+      shell: bash
+
+    - name: prepare terra environment
+      run: |
+        yarn
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+
+    - name: Generate code
+      if: ${{ inputs.generate-code }}
+      run: |
+        set -x
+        export PATH="/usr/local/opt/llvm@15/bin:$PATH"
+        ${{ inputs.generate-code-command }}
+      shell: bash
+      env:
+        LLVM_DOWNLOAD_URL: |
+          https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.6/clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04.tar.xz
+      working-directory: ${{ inputs.working-directory }}
+
+    - name: Generate Comment
+      if: ${{ inputs.generate-comment }}
+      run: ${{ inputs.generate-comment-command }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
