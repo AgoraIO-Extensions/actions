@@ -39,6 +39,10 @@ inputs:
     required: true
     default: "[AUTO] Generate code by terra"
 
+  pull-request-body:
+    description: The body of the pull request
+    required: false
+
   github-token:
     description: The github token
     required: true
@@ -87,4 +91,5 @@ runs:
         target-branch: ${{ inputs.target-branch }}
         target-branch-name-surffix: ${{ inputs.target-branch-name-surffix }}
         pull-request-title: ${{ inputs.pull-request-title }}
+        pull-request-body: ${{ inputs.pull-request-body }}
         github-token: ${{ inputs.github-token }}
