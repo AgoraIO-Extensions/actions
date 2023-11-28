@@ -11,10 +11,17 @@ inputs:
     required: false
     type: boolean
     default: true
+
   terra-path:
     description: The terra path
     required: true
     default: "scripts/terra"
+
+  generate-code-command:
+    description: The bash script will run when generate code.
+
+  generate-comment-command:
+    description: The bash script will run when generate comment.
 
   target-repo:
     description: The pull request target repo
@@ -70,15 +77,13 @@ runs:
 
     - name: Generate code
       if: ${{ inputs.generate-code }}
-      run: |
-        sh generate-comment.sh
+      run: ${{ inputs.generate-code-command }}
       shell: bash
       working-directory: ${{ inputs.terra-path }}
 
     - name: Generate Comment
       if: ${{ inputs.generate-comment }}
-      run: |
-        sh generate-comment.sh
+      run: ${{ inputs.generate-comment-command }}
       shell: bash
       working-directory: ${{ inputs.terra-path }}
 
