@@ -6,14 +6,15 @@ inputs:
     required: false
     type: boolean
     default: true
+
   generate-comment:
     description: is generate comment
     required: false
     type: boolean
     default: true
 
-  terra-path:
-    description: The terra path
+  working-directory:
+    description: working-directory
     required: true
     default: "scripts/terra"
 
@@ -22,33 +23,6 @@ inputs:
 
   generate-comment-command:
     description: The bash script will run when generate comment.
-
-  target-repo:
-    description: The pull request target repo
-    required: true
-    default: "AgoraIO-Extensions/Agora-Flutter-SDK"
-
-  target-branch:
-    description: The pull request target branch
-    required: true
-    default: "main"
-
-  target-path:
-    description: The path to generate codes, if set, will skip clone & pr
-
-  target-branch-name-surffix:
-    description: The surffix of the branch name, e.g., if terra-update, the branch name become main-terra-update
-    required: true
-    default: "terra-update"
-
-  pull-request-title:
-    description: The title of the pull request
-    required: true
-    default: "[AUTO] Generate code by terra"
-
-  pull-request-body:
-    description: The body of the pull request
-    required: false
 
   github-token:
     description: The github token
@@ -73,27 +47,16 @@ runs:
         yarn
         export LLVM_DOWNLOAD_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.6/clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04.tar.xz
       shell: bash
-      working-directory: ${{ inputs.terra-path }}
+      working-directory: ${{ inputs.working-directory }}
 
     - name: Generate code
       if: ${{ inputs.generate-code }}
       run: ${{ inputs.generate-code-command }}
       shell: bash
-      working-directory: ${{ inputs.terra-path }}
+      working-directory: ${{ inputs.working-directory }}
 
     - name: Generate Comment
       if: ${{ inputs.generate-comment }}
       run: ${{ inputs.generate-comment-command }}
       shell: bash
-      working-directory: ${{ inputs.terra-path }}
-
-    - name: Create pull request
-      if: ${{ !inputs.target-path }}
-      uses: AgoraIO-Extensions/actions/.github/actions/pr@main
-      with:
-        target-repo: ${{ inputs.target-repo }}
-        target-branch: ${{ inputs.target-branch }}
-        target-branch-name-surffix: ${{ inputs.target-branch-name-surffix }}
-        pull-request-title: ${{ inputs.pull-request-title }}
-        pull-request-body: ${{ inputs.pull-request-body }}
-        github-token: ${{ inputs.github-token }}
+      working-directory: ${{ inputs.working-directory }}
