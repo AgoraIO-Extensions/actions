@@ -46,7 +46,7 @@ runs:
       if: ${{ inputs.generate-code }}
       uses: KyleMayes/install-llvm-action@v1
       with:
-        version: "15.0.6"
+        download-url: "https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.6/clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04.tar.xz"
 
     - name: prepare terra environment
       run: |
