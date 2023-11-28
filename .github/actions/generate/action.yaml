@@ -1,0 +1,90 @@
+name: generate by terra
+description: generate code or comment
+inputs:
+  generate-code:
+    description: is generate code
+    required: false
+    type: boolean
+    default: true
+  generate-comment:
+    description: is generate comment
+    required: false
+    type: boolean
+    default: true
+  terra-path:
+    description: The terra path
+    required: true
+    default: "scripts/terra"
+
+  target-repo:
+    description: The pull request target repo
+    required: true
+    default: "AgoraIO-Extensions/Agora-Flutter-SDK"
+
+  target-branch:
+    description: The pull request target branch
+    required: true
+    default: "main"
+
+  target-path:
+    description: The path to generate codes, if set, will skip clone & pr
+
+  target-branch-name-surffix:
+    description: The surffix of the branch name, e.g., if terra-update, the branch name become main-terra-update
+    required: true
+    default: "terra-update"
+
+  pull-request-title:
+    description: The title of the pull request
+    required: true
+    default: "[AUTO] Generate code by terra"
+
+  github-token:
+    description: The github token
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: "18.x"
+
+    - name: Reconfigure git to use HTTP authentication
+      run: >
+        git config --global url."https://${{ secrets.GH_TOKEN }}@github.com/".insteadOf ssh://git@github.com/
+
+    - name: prepare terra environment
+      run: |
+        yarn
+        export LLVM_DOWNLOAD_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.6/clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04.tar.xz
+      working-directory: ${{ inputs.terra-path }}
+
+    - name: Generate code
+      if: ${{ inputs.generate-code }}
+      run: |
+        sh generate-comment.sh
+      working-directory: ${{ inputs.terra-path }}
+
+    - name: Generate Comment
+      if: ${{ inputs.generate-comment }}
+      run: |
+        sh generate-comment.sh
+      working-directory: ${{ inputs.terra-path }}
+
+    - name: Create pull request
+      if: ${{ !inputs.target-path }}
+      uses: AgoraIO-Extensions/actions/.github/actions/pr@main
+      with:
+        target-repo: ${{ inputs.target-repo }}
+        target-branch: ${{ inputs.target-branch }}
+        target-branch-name-surffix: ${{ inputs.target-branch-name-surffix }}
+        pull-request-title: ${{ inputs.pull-request-title }}
+        github-token: ${{ inputs.github-token }}
