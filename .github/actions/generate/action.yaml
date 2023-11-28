@@ -44,19 +44,19 @@ runs:
 
     - name: prepare terra environment
       run: |
-        set -x
-        export PATH="/usr/local/opt/llvm@15/bin:$PATH"
         yarn
-      shell: bash
-      env:
-        LLVM_DOWNLOAD_URL: |
-          https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.6/clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04.tar.xz
       working-directory: ${{ inputs.working-directory }}
 
     - name: Generate code
       if: ${{ inputs.generate-code }}
-      run: ${{ inputs.generate-code-command }}
+      run: |
+        set -x
+        export PATH="/usr/local/opt/llvm@15/bin:$PATH"
+        ${{ inputs.generate-code-command }}
       shell: bash
+      env:
+        LLVM_DOWNLOAD_URL: |
+          https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.6/clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04.tar.xz
       working-directory: ${{ inputs.working-directory }}
 
     - name: Generate Comment
