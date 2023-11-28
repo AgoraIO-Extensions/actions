@@ -54,7 +54,7 @@ runs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ inputs.github-token }}
 
     - name: Setup Node.js
       uses: actions/setup-node@v3
@@ -63,7 +63,8 @@ runs:
 
     - name: Reconfigure git to use HTTP authentication
       run: >
-        git config --global url."https://${{ secrets.GH_TOKEN }}@github.com/".insteadOf ssh://git@github.com/
+        git config --global url."https://${{ inputs.github-token }}@github.com/".insteadOf ssh://git@github.com/
+      shell: bash
 
     - name: prepare terra environment
       run: |
@@ -75,12 +76,14 @@ runs:
       if: ${{ inputs.generate-code }}
       run: |
         sh generate-comment.sh
+      shell: bash
       working-directory: ${{ inputs.terra-path }}
 
     - name: Generate Comment
       if: ${{ inputs.generate-comment }}
       run: |
         sh generate-comment.sh
+      shell: bash
       working-directory: ${{ inputs.terra-path }}
 
     - name: Create pull request
