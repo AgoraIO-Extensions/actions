@@ -42,12 +42,6 @@ runs:
         git config --global url."https://${{ inputs.github-token }}@github.com/".insteadOf ssh://git@github.com/
       shell: bash
 
-    - name: Install LLVM and Clang
-      if: ${{ inputs.generate-code }}
-      uses: KyleMayes/install-llvm-action@v1
-      with:
-        download-url: "https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.6/clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04.tar.xz"
-
     - name: prepare terra environment
       run: |
         yarn
@@ -57,8 +51,13 @@ runs:
     - name: Generate code
       if: ${{ inputs.generate-code }}
       run: |
+        set -x
+        export PATH="/usr/local/opt/llvm@15/bin:$PATH"
         ${{ inputs.generate-code-command }}
       shell: bash
+      env:
+        LLVM_DOWNLOAD_URL: |
+          https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.6/clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04.tar.xz
       working-directory: ${{ inputs.working-directory }}
 
     - name: Generate Comment
