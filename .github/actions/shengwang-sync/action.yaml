@@ -41,6 +41,7 @@ runs:
         echo "Starting pre hook..."
         cp -r "${{ github.workspace }}" .
         ls
+      shell: bash
 
     - name: Checkout the target repository
       uses: actions/checkout@v4
@@ -53,6 +54,7 @@ runs:
       run: |
         git config --global user.email "${{ inputs.github-email }}"
         git config --global user.name "${{ inputs.github-username }}"
+      shell: bash
 
     # - name: Commit changes
     #   run: |
