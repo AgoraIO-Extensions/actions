@@ -49,7 +49,7 @@ runs:
           git remote -v
           git checkout --track origin/${{ inputs.target-branch }}
           ${{ inputs.pre-command }}
-          git add --all
+          git add package.json
           git commit -m '[AUTO]sync agora to shengwang>> change package'
           git push github origin
 
