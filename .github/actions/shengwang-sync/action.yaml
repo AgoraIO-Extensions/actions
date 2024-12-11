@@ -47,5 +47,11 @@ runs:
           git config --global user.email "${{ inputs.github-email }}"
           git config --global user.name "${{ inputs.github-username }}"
           git remote -v
-
+          git checkout --track origin/${{ inputs.target-branch }}
+          ${{ inputs.pre-command }}
+          git add .
+          git commit -m '[AUTO]sync agora to shengwang>> change package'
+          git branch
+          git status
+          git push github origin
 
