@@ -24,40 +24,22 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout the current repository
+    - name: Checkout the repository
       uses: actions/checkout@v4
       with:
         repository: ${{ github.repository }}
-        ref: ${{ github.workspace }}
 
     - name: Run command before commit
       if: ${{ inputs.pre-command }}
       run: ${{ inputs.pre-command }}
-      working-directory: ${{ github.workspace }}
       shell: bash
 
-    - name: Copy package to temp directory
-      run: |
-        echo "Starting pre hook..."
-        cp -r "${{ github.workspace }}" .
-        ls
-      shell: bash
-
-    - name: Checkout the target repository
-      uses: actions/checkout@v4
-      with:
-        repository: ${{ inputs.target-repo }}
-        ref: ${{ inputs.target-branch }}
-        token: ${{ inputs.github-token }}
-
-    - name: Configure Git
+    - name: Configure Git and Commit
       run: |
         git config --global user.email "${{ inputs.github-email }}"
         git config --global user.name "${{ inputs.github-username }}"
+        git remote add origin ${{ inputs.target-repo }}
+        git branch -M ${{ inputs.target-branch }}
+        git commit -m "sync package from ${GITHUB_REPOSITORY} to ${{ inputs.target-repo }}"
+        git push -u origin ${{ inputs.target-branch }}
       shell: bash
-
-    # - name: Commit changes
-    #   run: |
-    #     git add .
-    #     git commit -m "sync package from ${GITHUB_REPOSITORY} to ${{ inputs.target-repo }}"
-    #     git push origin ${{ inputs.target-branch }}
