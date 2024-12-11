@@ -48,6 +48,6 @@ runs:
           git branch -M ${{ inputs.target-branch }}
           ${{ inputs.pre-command }}
           git add .
-          git commit -m '[AUTO]sync to shengwang>> change package'
+          git commit -m '[AUTO]sync agora to shengwang>> change package'
           git push -u origin ${{ inputs.target-branch }}
 
