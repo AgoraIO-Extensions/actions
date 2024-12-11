@@ -40,8 +40,8 @@ runs:
         account_type: org
         clone_style: "ssh"
         force_update: true
-        mappings: "${{ inputs.target-repo }}=>${{ inputs.source-repo }}"
-        static_list: "${{ inputs.target-repo }}"
+        mappings: "${{ inputs.source-repo }}=>${{ inputs.target-repo }}"
+        static_list: "${{ inputs.source-repo }}"
         shell_command: |
           git config --global user.email "${{ inputs.github-email }}"
           git config --global user.name "${{ inputs.github-username }}"
