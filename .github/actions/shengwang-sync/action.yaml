@@ -33,7 +33,7 @@ runs:
     - name: Run command before commit
       if: ${{ inputs.pre-command }}
       run: ${{ inputs.pre-command }}
-      ref: ${{ github.workspace }}
+      working-directory: ${{ github.workspace }}
       shell: bash
 
     - name: Copy package to temp directory
