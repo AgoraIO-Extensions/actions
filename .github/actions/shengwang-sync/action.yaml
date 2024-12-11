@@ -38,6 +38,7 @@ runs:
       run: |
         git config --global user.email "${{ inputs.github-email }}"
         git config --global user.name "${{ inputs.github-username }}"
+        git remote rm origin
         git remote add origin ${{ inputs.target-repo }}
         git branch -M ${{ inputs.target-branch }}
         git commit -m "sync package from ${GITHUB_REPOSITORY} to ${{ inputs.target-repo }}"
