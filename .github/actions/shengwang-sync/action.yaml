@@ -38,6 +38,7 @@ runs:
         dst_key: ${{ inputs.github-private-key }}
         dst_token: ${{ inputs.github-token }}
         account_type: org
+        cache_path: /github/workspace/hub-mirror-cache
         clone_style: "ssh"
         force_update: true
         mappings: "${{ inputs.source-repo }}=>${{ inputs.target-repo }}"
