@@ -1,0 +1,64 @@
+name: move Package to Shenwang repo
+
+inputs:
+  # github-email:
+  #   description: GIT_EMAIL from secrets
+  #   required: true
+  # github-username:
+  #   description: GIT_USERNAME from secrets
+  #   required: true
+  # github-token:
+  #   description: >
+  #     GITHUB_TOKEN (permissions contents: write and pull-requests: write) or a repo scoped Personal Access Token (PAT).
+  #   required: true
+  target_repo:
+    description: 'Target repository (e.g., owner/repo)'
+    required: true
+  target_branch:
+    description: 'Target branch to commit to'
+    required: true
+  package_path:
+    description: 'Path to the package to commit'
+    required: true
+  pre-command:
+    description: The bash script will run before commit.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout the current repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ inputs.github-token }}
+        ref: ${{ github.ref }}
+
+    - name: Run command before commit
+      if: ${{ inputs.pre-command }}
+      run: ${{ inputs.pre-command }}
+      ref: ${{ github.ref }}
+      shell: bash
+
+    - name: Copy package to temp directory
+      run: |
+        echo "Starting pre hook..."
+        cp -r "${GITHUB_WORKSPACE}/${{ inputs.package_path }}" ./temp
+
+    - name: Checkout the target repository
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ inputs.target_repo }}
+        ref: ${{ inputs.target_branch }}
+        token: ${{ secrets.GH_TOKEN }}
+
+    - name: Configure Git
+      run: |
+        git config --global user.email "${{ secrets.GIT_EMAIL }}"
+        git config --global user.name "${{ secrets.GIT_USERNAME }}"
+
+    - name: Commit changes
+      run: |
+        git add ./temp
+        git commit -m "sync package from ${GITHUB_REPOSITORY} to ${{ inputs.target_repo }}"
+        git push origin ${{ inputs.target_branch }}
