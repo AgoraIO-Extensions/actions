@@ -7,9 +7,15 @@ inputs:
   github-username:
     description: GIT_USERNAME from secrets
     required: true
+  github-private-key:
+    description: GH_PRIVATE_KEY from secrets
+    required: true
   github-token:
     description: >
       GITHUB_TOKEN (permissions contents: write and pull-requests: write) or a repo scoped Personal Access Token (PAT).
+    required: true
+  source-repo:
+    description: 'Source repository (e.g., owner/repo)'
     required: true
   target-repo:
     description: 'Target repository (e.g., owner/repo)'
@@ -24,23 +30,24 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout the repository
-      uses: actions/checkout@v4
+    - name: Mirror react-native-agora to Gitee
+      uses: guoxianzhe/hub-mirror-action@master
       with:
-        repository: ${{ github.repository }}
-
-    - name: Run command before commit
-      if: ${{ inputs.pre-command }}
-      run: ${{ inputs.pre-command }}
-      shell: bash
-
-    - name: Configure Git and Commit
-      run: |
-        git config --global user.email "${{ inputs.github-email }}"
-        git config --global user.name "${{ inputs.github-username }}"
-        git remote rm origin
-        git remote add origin ${{ inputs.target-repo }}
-        git branch -M ${{ inputs.target-branch }}
-        git commit -m "sync package from ${GITHUB_REPOSITORY} to ${{ inputs.target-repo }}"
-        git push -u origin ${{ inputs.target-branch }}
-      shell: bash
+        src: github/AgoraIO-Extensions
+        dst: github/AgoraIO-Extensions
+        dst_key: ${{ inputs.github-private-key }}
+        dst_token: ${{ inputs.github-token }}
+        account_type: org
+        clone_style: "ssh"
+        force_update: true
+        mappings: "${{ inputs.target-repo }}=>${{ inputs.source-repo }}"
+        static_list: "${{ inputs.target-repo }}"
+        shell_command: |
+          git config --global user.email "${{ inputs.github-email }}"
+          git config --global user.name "${{ inputs.github-username }}"
+          ${{ inputs.pre-command }}
+          git add .
+          git commit -m '[AUTO]sync to shengwang>> change package'
+          git branch
+          git status
+          git push
