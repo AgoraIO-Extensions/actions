@@ -17,9 +17,6 @@ inputs:
   target-branch:
     description: 'Target branch to commit to'
     required: true
-  package-path:
-    description: 'Path to the package to commit'
-    required: true
   pre-command:
     description: The bash script will run before commit.
     required: true
@@ -30,20 +27,20 @@ runs:
     - name: Checkout the current repository
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0
-        token: ${{ inputs.github-token }}
-        ref: ${{ github.ref }}
+        repository: ${{ github.repository }}
+        ref: ${{ github.workspace }}
 
     - name: Run command before commit
       if: ${{ inputs.pre-command }}
       run: ${{ inputs.pre-command }}
-      ref: ${{ github.ref }}
+      ref: ${{ github.workspace }}
       shell: bash
 
     - name: Copy package to temp directory
       run: |
         echo "Starting pre hook..."
-        cp -r "${GITHUB_WORKSPACE}/${{ inputs.package-path }}" ./temp
+        cp -r "${{ github.workspace }}" .
+        ls
 
     - name: Checkout the target repository
       uses: actions/checkout@v4
@@ -57,8 +54,8 @@ runs:
         git config --global user.email "${{ inputs.github-email }}"
         git config --global user.name "${{ inputs.github-username }}"
 
-    - name: Commit changes
-      run: |
-        git add ./temp
-        git commit -m "sync package from ${GITHUB_REPOSITORY} to ${{ inputs.target-repo }}"
-        git push origin ${{ inputs.target-branch }}
+    # - name: Commit changes
+    #   run: |
+    #     git add .
+    #     git commit -m "sync package from ${GITHUB_REPOSITORY} to ${{ inputs.target-repo }}"
+    #     git push origin ${{ inputs.target-branch }}
