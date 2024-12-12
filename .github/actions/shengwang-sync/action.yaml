@@ -54,14 +54,12 @@ runs:
           git remote remove origin
           git remote rename github origin
           git remote -v
-          REMOTE_URL=$(git remote get-url origin)
-          echo "REMOTE_URL=$REMOTE_URL" >> $GITHUB_ENV
 
     - name: Checkout target repo
       uses: actions/checkout@v4
       with:
         token: ${{ inputs.github-token }}
-        repository: ${{ env.REMOTE_URL }}
+        repository: ${{ github.repository_owner }}/${{ inputs.target-repo }}
         ref: ${{ inputs.target-branch }}
         path: ${{ inputs.target-repo }}
 
