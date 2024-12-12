@@ -51,8 +51,9 @@ runs:
 
     - name: Move package
       run: |
-        cp -r ${{ inputs.source-repo }} ${{ inputs.target-repo }}
+        cp -r ../${{ inputs.source-repo }} ${{ inputs.target-repo }}
         ls
+      working-directory: ${{ inputs.target-repo }}
       shell: bash
 
     - name: run pre-command
