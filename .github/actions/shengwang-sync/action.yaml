@@ -47,7 +47,6 @@ runs:
       with:
         token: ${{ inputs.github-token }}
         repository: ${{ github.repository_owner }}/${{ inputs.target-repo }}
-        ref: ${{ inputs.target-branch }}
         path: ${{ inputs.target-repo }}
 
     - name: Move package
@@ -60,6 +59,8 @@ runs:
       run: |
         ${{ inputs.pre-command }}
         git remote -v
+        git checkout -b ${{ inputs.target-branch }}
+        git status
       working-directory: ${{ inputs.target-repo }}
       shell: bash
 
