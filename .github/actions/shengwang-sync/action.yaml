@@ -38,6 +38,7 @@ runs:
       uses: actions/checkout@v4
       with:
         token: ${{ inputs.github-token }}
+        working-directory: ${{ inputs.target-repo }}
         repository: ${{ github.repository_owner }}/${{ inputs.target-repo }}
 
     - name: Configure git
@@ -52,22 +53,27 @@ runs:
         git remote add agora https://github.com/${{ github.repository_owner }}/${{ inputs.source-repo }}.git
         git fetch agora
       shell: bash
+      working-directory: ${{ inputs.target-repo }}
 
     - name: Rebase source repo onto target repo
       run: |
         git checkout ${{ inputs.target-branch }}
         git rebase agora/${{ inputs.target-branch }}
       shell: bash
+      working-directory: ${{ inputs.target-repo }}
 
     - name: Push changes to target repo
       run: |
         git push origin ${{ inputs.target-branch }} --force
+        git remote remove agora
       shell: bash
+      working-directory: ${{ inputs.target-repo }}
 
     - name: Run pre-command
       run: |
         ${{ inputs.pre-command }}
       shell: bash
+      working-directory: ${{ inputs.target-repo }}
 
     # - name: Commit directly
     #   if: ${{ !inputs.create-pr }}
