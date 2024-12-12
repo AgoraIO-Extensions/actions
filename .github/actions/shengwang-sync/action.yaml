@@ -54,6 +54,13 @@ runs:
         cp -r ${{ inputs.source-repo }}/* ${{ inputs.target-repo }}/
       shell: bash
 
+    - name: Configure user
+      run: |
+        git config --global user.email "${{ inputs.github-email }}"
+        git config --global user.name "${{ inputs.github-username }}"
+      working-directory: ${{ inputs.target-repo }}
+      shell: bash
+
     - name: run pre-command
       run: |
         ${{ inputs.pre-command }}
