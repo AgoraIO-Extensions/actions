@@ -40,27 +40,29 @@ runs:
         token: ${{ inputs.github-token }}
         repository: ${{ github.repository_owner }}/${{ inputs.target-repo }}
 
+    - name: Configure git
+      run: |
+        git config --global user.email "${{ inputs.github-email }}"
+        git config --global user.name "${{ inputs.github-username }}"
+        git config --global push.autoSetupRemote true
+
     - name: Add source repo as remote
       run: |
         git remote add agora https://github.com/${{ github.repository_owner }}/${{ inputs.source-repo }}.git
         git fetch agora
-      shell: bash
 
     - name: Rebase source repo onto target repo
       run: |
         git checkout ${{ inputs.target-branch }}
         git rebase agora/${{ github.ref }}
-      shell: bash
 
     - name: Push changes to target repo
       run: |
         git push origin ${{ inputs.target-branch }} --force
-      shell: bash
 
     - name: Run pre-command
       run: |
         ${{ inputs.pre-command }}
-      shell: bash
 
     # - name: Commit directly
     #   if: ${{ !inputs.create-pr }}
