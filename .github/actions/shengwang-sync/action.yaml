@@ -56,7 +56,7 @@ runs:
     - name: Rebase source repo onto target repo
       run: |
         git checkout ${{ inputs.target-branch }}
-        git rebase agora/${{ github.ref }}
+        git rebase agora/${{ github.target-branch }}
       shell: bash
 
     - name: Push changes to target repo
