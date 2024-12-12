@@ -55,9 +55,9 @@ runs:
           git remote rename github origin
           git checkout --track origin/${{ inputs.target-branch }}
           ${{ inputs.pre-command }}
-          if not ${{ inputs.create-pr }} ; then git add . ; fi
-          if not ${{ inputs.create-pr }} ; then git commit -m '[AUTO]sync agora to shengwang>> change package' ; fi
-          if not ${{ inputs.create-pr }} ; then git push origin ; fi
+          if ! ${{ inputs.create-pr }} ; then git add . ; fi
+          if ! ${{ inputs.create-pr }} ; then git commit -m '[AUTO]sync agora to shengwang>> change package' ; fi
+          if ! ${{ inputs.create-pr }} ; then git push origin ; fi
 
     - name: Create pull request
       if: ${{ inputs.create-pr }}
