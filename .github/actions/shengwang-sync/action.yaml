@@ -71,6 +71,7 @@ runs:
         git checkout -b ${{ inputs.target-branch }}
         git add .
         git commit -m '[AUTO]sync agora to shengwang'
+        git push origin
       working-directory: ${{ inputs.target-repo }}
       shell: bash
 
