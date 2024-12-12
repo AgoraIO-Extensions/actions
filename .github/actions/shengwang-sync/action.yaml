@@ -62,9 +62,8 @@ runs:
       working-directory: ${{ inputs.target-repo }}
       shell: bash
 
-    - name: run pre-command
+    - name: sync repo
       run: |
-        ${{ inputs.pre-command }}
         git fetch origin
         if git show-ref --verify --quiet refs/remotes/origin/${{ inputs.target-branch }}; then
             git push origin --delete ${{ inputs.target-branch }}
@@ -76,6 +75,12 @@ runs:
       working-directory: ${{ inputs.target-repo }}
       shell: bash
 
+    # - name: run pre-command
+    #   run: |
+    #     ${{ inputs.pre-command }}
+    #   working-directory: ${{ inputs.target-repo }}
+    #   shell: bash
+
     # - name: Commit directly
     #   if: ${{ !inputs.create-pr }}
     #   run: |
@@ -86,17 +91,17 @@ runs:
     #   working-directory: ${{ inputs.source-repo }}
     #   shell: bash
 
-    # - name: Create pull request
-    #   if: ${{ inputs.create-pr }}
-    #   uses: AgoraIO-Extensions/actions/.github/actions/pr@sync
-    #   with:
-    #     github-token: ${{ inputs.github-token }}
-    #     target-repo: ${{ inputs.target-repo }}
-    #     target-branch: ${{ inputs.target-branch }}
-    #     target-branch-name-surffix: shengwang-sync-auto
-    #     pull-request-title: |
-    #       [AUTO]sync agora to shengwang>> change package
-    #     pull-request-body: |
-    #       This is an auto-generated PR to sync agora to shengwang
-    #       Please review changes and check the CI status.
-    #       If everything is fine, please merge this PR.
+    - name: Create pull request
+      if: ${{ inputs.create-pr }}
+      uses: AgoraIO-Extensions/actions/.github/actions/pr@sync
+      with:
+        github-token: ${{ inputs.github-token }}
+        target-repo: ${{ inputs.target-repo }}
+        target-branch: ${{ inputs.target-branch }}
+        target-branch-name-surffix: shengwang-sync-auto
+        pull-request-title: |
+          [AUTO]sync agora to shengwang>> change package
+        pull-request-body: |
+          This is an auto-generated PR to sync agora to shengwang
+          Please review changes and check the CI status.
+          If everything is fine, please merge this PR.
