@@ -26,6 +26,10 @@ inputs:
   pre-command:
     description: The bash script will run before commit.
     required: true
+  create-pr:
+    description: 'if need create pr'
+    type: boolean
+    required: true
 
 runs:
   using: composite
@@ -47,9 +51,25 @@ runs:
           git config --global user.email "${{ inputs.github-email }}"
           git config --global user.name "${{ inputs.github-username }}"
           git remote -v
+          git remote remove origin
+          git remote rename github origin
           git checkout --track origin/${{ inputs.target-branch }}
           ${{ inputs.pre-command }}
-          git add .
-          git commit -m '[AUTO]sync agora to shengwang>> change package'
-          git push github
+          if not ${{ inputs.create-pr }} ; then git add . ; fi
+          if not ${{ inputs.create-pr }} ; then git commit -m '[AUTO]sync agora to shengwang>> change package' ; fi
+          if not ${{ inputs.create-pr }} ; then git push origin ; fi
 
+    - name: Create pull request
+      if: ${{ inputs.create-pr }}
+      uses: AgoraIO-Extensions/actions/.github/actions/pr@main
+      with:
+        github-token: ${{ inputs.github-token }}
+        target-repo: ${{ github.workspace }}
+        target-branch: ${{ inputs.target-branch }}
+        target-branch-name-surffix: shengwang-sync-auto
+        pull-request-title: |
+          [AUTO]sync agora to shengwang>> change package
+        pull-request-body: |
+          This is an auto-generated PR to sync agora to shengwang
+          Please review changes and check the CI status.
+          If everything is fine, please merge this PR.
