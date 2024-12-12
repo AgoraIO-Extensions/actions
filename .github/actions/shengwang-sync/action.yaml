@@ -61,7 +61,7 @@ runs:
 
     - name: Create pull request
       if: ${{ inputs.create-pr }}
-      uses: AgoraIO-Extensions/actions/.github/actions/pr@main
+      uses: AgoraIO-Extensions/actions/.github/actions/pr@sync
       with:
         github-token: ${{ inputs.github-token }}
         target-repo: ${{ github.workspace }}
