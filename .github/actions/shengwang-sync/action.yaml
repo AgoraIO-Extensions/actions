@@ -62,6 +62,7 @@ runs:
         if git show-ref --verify --quiet refs/remotes/origin/${{ inputs.target-branch }}; then
             git push origin --delete ${{ inputs.target-branch }}
         fi
+        git status
         git checkout -b ${{ inputs.target-branch }}
         git add .
         git commit -m '[AUTO]sync agora to shengwang'
