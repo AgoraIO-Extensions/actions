@@ -34,26 +34,13 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Mirror react-native-agora to Gitee
-      uses: guoxianzhe/hub-mirror-action@master
+    - name: Checkout source repo
+      uses: actions/checkout@v4
       with:
-        src: github/AgoraIO-Extensions
-        dst: github/AgoraIO-Extensions
-        dst_key: ${{ inputs.github-private-key }}
-        dst_token: ${{ inputs.github-token }}
-        account_type: org
-        cache_path: /github/workspace/hub-mirror-cache
-        clone_style: "ssh"
-        force_update: true
-        mappings: "${{ inputs.source-repo }}=>${{ inputs.target-repo }}"
-        static_list: "${{ inputs.source-repo }}"
-        shell_command: |
-          git config --global user.email "${{ inputs.github-email }}"
-          git config --global user.name "${{ inputs.github-username }}"
-          git remote -v
-          git remote remove origin
-          git remote rename github origin
-          git remote -v
+        token: ${{ inputs.github-token }}
+        repository: ${{ github.repository_owner }}/${{ inputs.source-repo }}
+        ref: ${{ github.ref }}
+        path: ${{ inputs.source-repo }}
 
     - name: Checkout target repo
       uses: actions/checkout@v4
@@ -63,35 +50,41 @@ runs:
         ref: ${{ inputs.target-branch }}
         path: ${{ inputs.target-repo }}
 
-    - name: Commit directly
-      if: ${{ !inputs.create-pr }}
+    - name: Move package
       run: |
-        git checkout --track origin/${{ inputs.target-branch }}
-        ${{ inputs.pre-command }}
-        git add .
-        git commit -m '[AUTO]sync agora to shengwang>> change package'
-        git push origin
-      working-directory: ${{ github.workspace }}
+        cp -r ${{ inputs.source-repo }} ${{ inputs.target-repo }}
+        ls
       shell: bash
 
     - name: run pre-command
-      if: ${{ inputs.create-pr }}
       run: |
         ${{ inputs.pre-command }}
+        git remote -v
       working-directory: ${{ inputs.target-repo }}
       shell: bash
 
-    - name: Create pull request
-      if: ${{ inputs.create-pr }}
-      uses: AgoraIO-Extensions/actions/.github/actions/pr@sync
-      with:
-        github-token: ${{ inputs.github-token }}
-        target-repo: ${{ inputs.target-repo }}
-        target-branch: ${{ inputs.target-branch }}
-        target-branch-name-surffix: shengwang-sync-auto
-        pull-request-title: |
-          [AUTO]sync agora to shengwang>> change package
-        pull-request-body: |
-          This is an auto-generated PR to sync agora to shengwang
-          Please review changes and check the CI status.
-          If everything is fine, please merge this PR.
+    # - name: Commit directly
+    #   if: ${{ !inputs.create-pr }}
+    #   run: |
+    #     git checkout -b ${{ inputs.target-branch }}
+    #     ${{ inputs.pre-command }}
+    #     git add .
+    #     git commit -m '[AUTO]sync agora to shengwang>> change package'
+    #     git push origin
+    #   working-directory: ${{ inputs.source-repo }}
+    #   shell: bash
+
+    # - name: Create pull request
+    #   if: ${{ inputs.create-pr }}
+    #   uses: AgoraIO-Extensions/actions/.github/actions/pr@sync
+    #   with:
+    #     github-token: ${{ inputs.github-token }}
+    #     target-repo: ${{ inputs.target-repo }}
+    #     target-branch: ${{ inputs.target-branch }}
+    #     target-branch-name-surffix: shengwang-sync-auto
+    #     pull-request-title: |
+    #       [AUTO]sync agora to shengwang>> change package
+    #     pull-request-body: |
+    #       This is an auto-generated PR to sync agora to shengwang
+    #       Please review changes and check the CI status.
+    #       If everything is fine, please merge this PR.
