@@ -38,7 +38,7 @@ runs:
       uses: actions/checkout@v4
       with:
         token: ${{ inputs.github-token }}
-        working-directory: ${{ inputs.target-repo }}
+        path: ${{ inputs.target-repo }}
         repository: ${{ github.repository_owner }}/${{ inputs.target-repo }}
 
     - name: Configure git
