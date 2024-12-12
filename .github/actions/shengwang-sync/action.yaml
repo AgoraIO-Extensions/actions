@@ -54,18 +54,41 @@ runs:
           git remote remove origin
           git remote rename github origin
           git remote -v
-          git checkout --track origin/${{ inputs.target-branch }}
-          ${{ inputs.pre-command }}
-          if ! ${{ inputs.create-pr }} ; then git add . ; fi
-          if ! ${{ inputs.create-pr }} ; then git commit -m '[AUTO]sync agora to shengwang>> change package' ; fi
-          if ! ${{ inputs.create-pr }} ; then git push origin ; fi
-    
+          REMOTE_URL=$(git remote get-url origin)
+          echo "REMOTE_URL=$REMOTE_URL" >> $GITHUB_ENV
+
+    - name: Checkout target repo
+      uses: actions/checkout@v4
+      with:
+        token: ${{ inputs.github-token }}
+        repository: ${{ env.REMOTE_URL }}
+        ref: ${{ inputs.target-branch }}
+        path: ${{ inputs.target-repo }}
+
+    - name: Commit directly
+      if: ${{ !inputs.create-pr }}
+      run: |
+        git checkout --track origin/${{ inputs.target-branch }}
+        ${{ inputs.pre-command }}
+        git add .
+        git commit -m '[AUTO]sync agora to shengwang>> change package'
+        git push origin
+      working-directory: ${{ github.workspace }}
+      shell: bash
+
+    - name: run pre-command
+      if: ${{ inputs.create-pr }}
+      run: |
+        ${{ inputs.pre-command }}
+      working-directory: ${{ inputs.target-repo }}
+      shell: bash
+
     - name: Create pull request
       if: ${{ inputs.create-pr }}
       uses: AgoraIO-Extensions/actions/.github/actions/pr@sync
       with:
         github-token: ${{ inputs.github-token }}
-        target-repo: ${{ github.workspace }}
+        target-repo: ${{ inputs.target-repo }}
         target-branch: ${{ inputs.target-branch }}
         target-branch-name-surffix: shengwang-sync-auto
         pull-request-title: |
