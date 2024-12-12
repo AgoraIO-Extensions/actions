@@ -53,12 +53,16 @@ runs:
           git remote -v
           git remote remove origin
           git remote rename github origin
+          git remote -v
           git checkout --track origin/${{ inputs.target-branch }}
           ${{ inputs.pre-command }}
           if ! ${{ inputs.create-pr }} ; then git add . ; fi
           if ! ${{ inputs.create-pr }} ; then git commit -m '[AUTO]sync agora to shengwang>> change package' ; fi
           if ! ${{ inputs.create-pr }} ; then git push origin ; fi
+    - uses: actions/checkout@v3
 
+    - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+    
     - name: Create pull request
       if: ${{ inputs.create-pr }}
       uses: AgoraIO-Extensions/actions/.github/actions/pr@sync
