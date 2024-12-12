@@ -75,11 +75,11 @@ runs:
       working-directory: ${{ inputs.target-repo }}
       shell: bash
 
-    # - name: run pre-command
-    #   run: |
-    #     ${{ inputs.pre-command }}
-    #   working-directory: ${{ inputs.target-repo }}
-    #   shell: bash
+    - name: run pre-command
+      run: |
+        ${{ inputs.pre-command }}
+      working-directory: ${{ inputs.target-repo }}
+      shell: bash
 
     # - name: Commit directly
     #   if: ${{ !inputs.create-pr }}
