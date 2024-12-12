@@ -57,20 +57,24 @@ runs:
     - name: run pre-command
       run: |
         ${{ inputs.pre-command }}
-        git remote -v
+        git checkout -b 
+        git fetch origin
+        if git show-ref --verify --quiet refs/remotes/origin/${{ inputs.target-branch }}; then
+            git push origin --delete ${{ inputs.target-branch }}
+        fi
         git checkout -b ${{ inputs.target-branch }}
-        git status
+        git add .
+        git commit -m '[AUTO]sync agora to shengwang'
       working-directory: ${{ inputs.target-repo }}
       shell: bash
 
     # - name: Commit directly
     #   if: ${{ !inputs.create-pr }}
     #   run: |
-    #     git checkout -b ${{ inputs.target-branch }}
     #     ${{ inputs.pre-command }}
     #     git add .
     #     git commit -m '[AUTO]sync agora to shengwang>> change package'
-    #     git push origin
+    #     git push --f origin
     #   working-directory: ${{ inputs.source-repo }}
     #   shell: bash
 
