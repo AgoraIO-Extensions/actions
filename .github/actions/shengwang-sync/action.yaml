@@ -59,7 +59,7 @@ runs:
         ${{ inputs.pre-command }}
         git fetch origin
         if git show-ref --verify --quiet refs/remotes/origin/${{ inputs.target-branch }}; then
-            git push origin --delete ${{ inputs.target-branch }}
+            gi push origin --delete ${{ inputs.target-branch }}
         fi
         git checkout -b ${{ inputs.target-branch }}
         git add .
