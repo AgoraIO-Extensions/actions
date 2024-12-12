@@ -34,51 +34,32 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout source repo
-      uses: actions/checkout@v4
-      with:
-        token: ${{ inputs.github-token }}
-        repository: ${{ github.repository_owner }}/${{ inputs.source-repo }}
-        ref: ${{ github.ref }}
-        path: ${{ inputs.source-repo }}
-
     - name: Checkout target repo
       uses: actions/checkout@v4
       with:
         token: ${{ inputs.github-token }}
         repository: ${{ github.repository_owner }}/${{ inputs.target-repo }}
-        path: ${{ inputs.target-repo }}
 
-    - name: Move package
+    - name: Add source repo as remote
       run: |
-        cp -r ${{ inputs.source-repo }}/* ${{ inputs.target-repo }}/
+        git remote add agora https://github.com/${{ github.repository_owner }}/${{ inputs.source-repo }}.git
+        git fetch agora
       shell: bash
 
-    - name: Configure git
+    - name: Rebase source repo onto target repo
       run: |
-        git config --global user.email "${{ inputs.github-email }}"
-        git config --global user.name "${{ inputs.github-username }}"
-        git config --global push.autoSetupRemote true
-      working-directory: ${{ inputs.target-repo }}
+        git checkout ${{ inputs.target-branch }}
+        git rebase agora/${{ github.ref }}
       shell: bash
 
-    - name: sync repo
+    - name: Push changes to target repo
       run: |
-        git fetch origin
-        if git show-ref --verify --quiet refs/remotes/origin/${{ inputs.target-branch }}; then
-            git push origin --delete ${{ inputs.target-branch }}
-        fi
-        git checkout -b ${{ inputs.target-branch }}
-        git add .
-        git commit -m '[AUTO]sync agora to shengwang'
-        git push origin
-      working-directory: ${{ inputs.target-repo }}
+        git push origin ${{ inputs.target-branch }} --force
       shell: bash
 
-    - name: run pre-command
+    - name: Run pre-command
       run: |
         ${{ inputs.pre-command }}
-      working-directory: ${{ inputs.target-repo }}
       shell: bash
 
     # - name: Commit directly
