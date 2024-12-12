@@ -75,15 +75,14 @@ runs:
       shell: bash
       working-directory: ${{ inputs.target-repo }}
 
-    # - name: Commit directly
-    #   if: ${{ !inputs.create-pr }}
-    #   run: |
-    #     ${{ inputs.pre-command }}
-    #     git add .
-    #     git commit -m '[AUTO]sync agora to shengwang>> change package'
-    #     git push --f origin
-    #   working-directory: ${{ inputs.source-repo }}
-    #   shell: bash
+    - name: Commit directly
+      if: ${{ !inputs.create-pr }}
+      run: |
+        git add .
+        git commit -m '[AUTO]change package from agora to shengwang'
+        git push origin ${{ inputs.target-branch }} --force
+      working-directory: ${{ inputs.target-repo }}
+      shell: bash
 
     - name: Create pull request
       if: ${{ inputs.create-pr }}
@@ -94,7 +93,7 @@ runs:
         target-branch: ${{ inputs.target-branch }}
         target-branch-name-surffix: shengwang-sync-auto
         pull-request-title: |
-          [AUTO]sync agora to shengwang>> change package
+          [AUTO]change package from agora to shengwang
         pull-request-body: |
           This is an auto-generated PR to sync agora to shengwang
           Please review changes and check the CI status.
