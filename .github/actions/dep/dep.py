@@ -1,51 +1,229 @@
 import re
-import sys
-import os
+import json
+import argparse
 
-regx = [
-    r"(.*(implementation|api)[\s]*)(['|\"]io\.agora\.rtc:iris-rtc(-beta)?:[0-9a-zA-Z\.-]+['|\"])",
-    r"(.*(implementation|api)[\s]*)(['|\"]io\.agora\.rtc:(agora-)?(special-)?(full|voice)(-(preview|sdk))?:[0-9a-zA-Z\.-]+['|\"])",
-    r"(.*(implementation|api)[\s]*)(['|\"]io\.agora\.rtc:full-screen-sharing(-special)?:[0-9a-zA-Z\.-]+['|\"])",
-    r"(.*(pod|dependency)[\s]*)(['|\"]AgoraIrisRTC_iOS(_Beta)?['|\"],[\s]*['|\"][0-9a-zA-Z\.-]+['|\"])",
-    r"(.*(pod|dependency)[\s]*)(['|\"]Agora(RtcEngine|Audio)(_Special)?_iOS(_Preview)?['|\"],[\s]*['|\"][0-9a-zA-Z\.-]+['|\"])",
-    r"(.*(CDN:)?[\s]*)(https://download\.agora\.io/sdk/release/iris_[0-9a-zA-Z\.-]+_DCG_Windows_(Video|Audio)_([0-9]+)_([0-9]+)\.zip)",
-    r"(.*(CDN:)?[\s]*)(https://download\.agora\.io/sdk/release/iris_[0-9a-zA-Z\.-]+_DCG_Mac_(Video|Audio)_([0-9]+)_([0-9]+)\.zip)",
-    r"(.*(pod|dependency)[\s]*)(['|\"]AgoraIrisRTC_macOS(_Beta)?['|\"],[\s]*['|\"][0-9a-zA-Z\.-]+['|\"])",
-    r"(.*(pod|dependency)[\s]*)(['|\"]Agora(RtcEngine|Audio)(_Special)?_macOS(_Preview)?['|\"],[\s]*['|\"][0-9a-zA-Z\.-]+['|\"])",
+### useage
+# python dep.py "input_string" --output "output.json"
+
+
+android_cdnRegex = [
+    r"https://download.(?:agora|shengwang)[^\s]*iris[^\s]*_Android[^\s]*\.zip",
+    r"https://download.(?:agora|shengwang)[^\s]*Native_SDK_for_Android[^\s]*\.zip",
 ]
-matches = []
+
+mavenRegex = [
+    r"\b(?:implementation|api)\s+['|\"](?:cn|io)\.(?:agora|shengwang)\.rtc:?(?:agora-)?(?:special-)?(?:full|voice)?(?:-preview|-sdk)?:[a-zA-Z0-9_.-]+['|\"]",
+    r"\b(?:implementation|api)\s+['|\"](?:cn|io)\.(?:agora|shengwang)\.rtc:full-screen-sharing(?:-special)?:[a-zA-Z0-9_.-]+['|\"]",
+    r"\b(?:implementation|api)\s+['|\"](?:cn|io)\.(?:agora|shengwang)\:agora-rtm:[a-zA-Z0-9_.-]+['|\"]",
+    r"\b(?:implementation|api)\s+['|\"](?:cn|io)\.(?:agora|shengwang)\.rtc:iris-rtc(?:agora-)?(?:special-)?(?:full|voice)?(?:-preview|-sdk)?:[a-zA-Z0-9_.-]+['|\"]",
+    r"\b(?:implementation|api)\s+['|\"](?:cn|io)\.(?:agora|shengwang)\.rtm:iris-rtm(?:agora-)?(?:special-)?(?:full|voice)?(?:-preview|-sdk)?:[a-zA-Z0-9_.-]+['|\"]",
+]
+
+iOS_cdnRegex = [
+    r"https://download.(?:agora|shengwang)[^\s]*iris[^\s]*_iOS[^\s]*\.zip",
+    r"https://download.(?:agora|shengwang)[^\s]*Native_SDK_for_iOS[^\s]*\.zip",
+]
+
+windows_cdnRegex = [
+    r"https://download.(?:agora|shengwang)[^\s]*iris[^\s]*_Windows[^\s]*\.zip",
+    r"https://download.(?:agora|shengwang)[^\s]*Native_SDK_for_Windows[^\s]*\.zip",
+]
+
+mac_cdnRegex = [
+    r"https://download.(?:agora|shengwang)[^\s]*iris[^\s]*_Mac[^\s]*\.zip",
+    r"https://download.(?:agora|shengwang)[^\s]*Native_SDK_for_Mac[^\s]*\.zip",
+]
+
+cocoapodsRegex = [
+    r"pod\s*'(?:Shengwang|Agora)(?:IrisRTC|IrisRTM)?(?:_iOS|_macOS)(?:_Preview)?'\s*,\s*'[0-9a-zA-Z.-]+'(?!\s*,\s*:subspecs)",
+    r"pod\s*'(?:Shengwang|Agora)(?:RtcEngine|Audio|Rtm)(?:_Special)?(?:_iOS|_macOS)(?:_Preview)?'\s*,\s*'[0-9a-zA-Z.-]+'(?!\s*,\s*:subspecs)",
+]
+
+def parse_content(input_string):
+    platforms = ['iOS', 'macOS', 'Android', 'Windows']
+    result = []
+
+    # Extract Cocoapods dependencies
+    ios_dependencies = []
+    iris_ios_dependencies = []
+    macos_dependencies = []
+    iris_macos_dependencies = []
+    for pattern in cocoapodsRegex:
+        found = re.findall(pattern, input_string)
+        for match in found:
+            if 'ios' in match.lower():
+                if 'iris' in match.lower():
+                    iris_ios_dependencies.append(match)
+                else:
+                    ios_dependencies.append(match)
+            elif 'macos' in match.lower():
+                if 'iris' in match.lower():
+                    iris_macos_dependencies.append(match)
+                else:
+                    macos_dependencies.append(match)
+
+    # Extract Maven dependencies
+    maven_dependencies = []
+    iris_maven_dependencies = []
+    for pattern in mavenRegex:
+        found = re.findall(pattern, input_string)
+        for match in found:
+            if 'iris' in match.lower():
+                iris_maven_dependencies.append(match)
+            else:
+                maven_dependencies.append(match)
+
+    # Extract CDN URLs
+    cdn_urls = []
+    for pattern in android_cdnRegex:
+        found = re.findall(pattern, input_string)
+        cdn_urls.append(found)
+
+    for platform in platforms:
+        platform_data = {
+            'platform': platform,
+            'cdn': [],
+            'cocoapods': [],
+            'maven': [],
+            'iris_cocoapods': [],
+            'iris_maven': [],
+            'iris_cdn': []
+        }
+
+        if platform == 'Android':
+            for pattern in android_cdnRegex:
+                found = re.findall(pattern, input_string)
+                for match in found:
+                    if 'iris' in match.lower():
+                        platform_data['iris_cdn'].append(match)
+                    else:
+                        platform_data['cdn'].append(match)
+            platform_data['maven'].append(maven_dependencies)
+            platform_data['iris_maven'].append(iris_maven_dependencies)
+
+        if platform == 'iOS':
+            for pattern in iOS_cdnRegex:
+                found = re.findall(pattern, input_string)
+                for match in found:
+                    if 'iris' in match.lower():
+                        platform_data['iris_cdn'].append(match)
+                    else:
+                        platform_data['cdn'].append(match)
+            platform_data['cocoapods'].append(ios_dependencies)
+            platform_data['iris_cocoapods'].append(iris_ios_dependencies)
+
+        if platform == 'Windows':
+            for pattern in windows_cdnRegex:
+                found = re.findall(pattern, input_string)
+                for match in found:
+                    if 'iris' in match.lower():
+                        platform_data['iris_cdn'].append(match)
+                    else:
+                        platform_data['cdn'].append(match)
+
+        if platform == 'macOS':
+            for pattern in mac_cdnRegex:
+                found = re.findall(pattern, input_string)
+                for match in found:
+                    if 'iris' in match.lower():
+                        platform_data['iris_cdn'].append(match)
+                    else:
+                        platform_data['cdn'].append(match)
+            platform_data['cocoapods'].append(macos_dependencies)
+            platform_data['iris_cocoapods'].append(iris_macos_dependencies)
+
+        result.append(platform_data)
+
+    return result
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Parse input string for dependencies and CDN URLs.')
+    parser.add_argument('input_string', type=str, help='The input string to parse')
+    parser.add_argument('--output', type=str, default='output.json', help='The output file to save the results')
+
+    args = parser.parse_args()
+
+    parsed_data = parse_content(args.input_string)
+
+    with open(args.output, 'w') as f:
+        json.dump(parsed_data, f, indent=4)
+
+    print(f"Results saved to {args.output}")
 
 
-def match(content: str):
-    matches.clear()
-    for r in regx:
-        flag = False
-        for line in content.splitlines():
-            m = re.match(r, line)
-            if m is not None and m.group(3) not in matches:
-                matches.append(m.group(3))
-                flag = True
-                break
-        if not flag:
-            matches.append(None)
+# Example input string
+# input_string = """
+# # CDN
+# https://download.agora.io/sdk/release/Agora_Native_SDK_for_Android_rel.v4.1.2.139_68515_FULL_20250113_1950_524795.zip
 
-    for m in matches:
-        print(m, end = "\r\n")
+# # IRIS
+# https://download.agora.io/sdk/release/iris_4.3.2.11-meeting.1_DCG_Android_Video_20250122_0421_727.zip
+# https://download.agora.io/sdk/release/iris_4.3.2.11-meeting.1_DCG_Android_Video_Standalone_20250122_0421_727.zip
+# implementation 'io.agora.rtc:iris-rtc:4.3.2.11-meeting.1'
+# https://download.agora.io/sdk/release/iris_2.2.2.1-build.1_RTM_Android_Video_Standalone_16K_20250116_0449_724.zip
+# https://download.agora.io/sdk/release/iris_2.2.2.1-build.1_RTM_Android_Video_16K_20250116_0449_724.zip
+# implementation 'io.agora.rtm:iris-rtm:2.2.2.1-build.1'
 
+# # Maven
+# api 'io.agora.rtc:full-sdk:4.5.0'
+# api 'io.agora.rtc:voice-sdk:4.2.6'
+# implementation 'io.agora.rtc:agora-full-preview:4.3.2.11'
+# implementation 'io.agora.rtc:agora-special-voice:4.3.2.11'
+# implementation 'io.agora.rtc:agora-special-full:4.3.2.11'
+# implementation 'io.agora.rtc:full-screen-sharing:4.1.2.139'
+# implementation 'io.agora.rtc:full-screen-sharing-special:4.3.2.11-meeting.1'
+# implementation 'io.agora:agora-rtm:2.1.12'
+# """
 
-def replace(path: str):
-    with open(path, 'r') as f:
-        content = f.read()
+# input_string = """
+# # CDN
+# https://download.agora.io/sdk/release/Agora_Native_SDK_for_Windows_v4.5.0_FULL.zip
+# https://download.agora.io/sdk/release/Agora_Native_SDK_for_Windows_rel.v4.2.6.153_27683_FULL_20241230_2024_503327.zip
 
-    for i in range(len(matches)):
-        if matches[i] is not None:
-            content = re.sub(regx[i], r'\1' + matches[i], content)
+# # IRIS
+# https://download.agora.io/sdk/release/iris_4.3.2.11-meeting.1_DCG_Windows_Video_20250122_0421_597.zip
+# https://download.agora.io/sdk/release/iris_4.3.2.11-meeting.1_DCG_Windows_Video_Standalone_20250122_0421_597.zip
+# """
 
-    with open(path, 'w') as f:
-        f.write(content)
+# input_string = """
+# # CDN
+# https://download.agora.io/sdk/release/Agora_Native_SDK_for_Mac_rel.v4.2.6.154_23292_FULL_20250108_1705_516982.zip
+# https://download.agora.io/sdk/release/Agora_Native_SDK_for_Mac_v4.5.0_FULL.zip
 
+# # IRIS
+# https://download.agora.io/sdk/release/iris_4.3.2.11-meeting.1_DCG_Mac_Video_Standalone_20250122_0424_558.zip
+# https://download.agora.io/sdk/release/iris_4.3.2.11-meeting.1_DCG_Mac_Video_20250122_0424_558.zip
+# pod 'AgoraIrisRTC_macOS', '4.3.2.11-meeting.1'
 
-match(sys.argv[1])
+# # Cocoapods
+# pod 'AgoraRtcEngine_macOS_Preview', '4.3.2.11-meeting.1'
+# pod 'AgoraRtcEngine_macOS', '4.3.2.11-meeting.1'
+# pod 'AgoraRtcEngine_Special_macOS', '4.3.2.11-meeting.1'
+# pod 'ShengwangRtcEngine_Special_macOS', '4.3.2.11-meeting.1'
 
-for path in sys.argv[3].splitlines():
-    replace(os.path.join(sys.argv[2], path))
+# """
+
+# input_string = """
+# # CDN
+# https://download.agora.io/sdk/release/Agora_Native_SDK_for_iOS_v4.5.0_FULL.zip
+# https://download.agora.io/sdk/release/Agora_Native_SDK_for_iOS_v4.5.0_VOICE.zip
+# https://download.agora.io/sdk/release/Agora_Native_SDK_for_iOS_v4.5.0_LITE.zip
+
+# # IRIS
+# https://download.agora.io/sdk/release/iris_4.3.2.11-meeting.1_DCG_Mac_Video_Standalone_20250122_0424_558.zip
+# https://download.agora.io/sdk/release/iris_4.3.2.11-meeting.1_DCG_Mac_Video_20250122_0424_558.zip
+# pod 'AgoraIrisRTC_iOS', '4.3.2.11-meeting.1'
+# pod 'AgoraIrisRTM_iOS', '4.3.2.11-meeting.1'
+# # Cocoapods
+# pod 'AgoraRtcEngine_iOS_Preview', '4.3.2.11-meeting.1'
+# pod 'AgoraRtcEngine_iOS', '4.3.2.11-meeting.1'
+# pod 'AgoraRtcEngine_Special_iOS', '4.3.2.11-meeting.1'
+# pod 'AgoraAudio_Special_iOS', '4.3.2.11-meeting.1'
+# pod 'AgoraAudio_iOS', '4.3.2.11-meeting.1'
+# pod 'AgoraRtm_iOS', '4.3.2.11-meeting.1'
+# """
+
+# Parse the input string
+# parsed_data = parse_content(input_string)
+# Print the result in JSON format
+# print(json.dumps(parsed_data[0], indent=4))
