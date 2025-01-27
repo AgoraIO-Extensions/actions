@@ -139,16 +139,13 @@ def parse_content(input_string):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Parse input string for dependencies and CDN URLs.')
     parser.add_argument('input_string', type=str, help='The input string to parse')
-    parser.add_argument('--output', type=str, default='output.json', help='The output file to save the results')
 
     args = parser.parse_args()
 
     parsed_data = parse_content(args.input_string)
 
-    with open(args.output, 'w') as f:
-        json.dump(parsed_data, f, indent=4)
-
-    print(f"Results saved to {args.output}")
+    # Print the results to stdout
+    print(json.dumps(parsed_data, indent=4))
 
 
 # Example input string
