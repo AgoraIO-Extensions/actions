@@ -2,7 +2,7 @@ import re
 import json
 import argparse
 
-### useage
+# useage
 # python dep.py "input_string" --output "output.json"
 
 
@@ -98,8 +98,8 @@ def parse_content(input_string):
                         platform_data['iris_cdn'].append(match)
                     else:
                         platform_data['cdn'].append(match)
-            platform_data['maven'].append(maven_dependencies)
-            platform_data['iris_maven'].append(iris_maven_dependencies)
+            platform_data['maven'] = maven_dependencies
+            platform_data['iris_maven'] = iris_maven_dependencies
 
         if platform == 'iOS':
             for pattern in iOS_cdnRegex:
@@ -109,8 +109,8 @@ def parse_content(input_string):
                         platform_data['iris_cdn'].append(match)
                     else:
                         platform_data['cdn'].append(match)
-            platform_data['cocoapods'].append(ios_dependencies)
-            platform_data['iris_cocoapods'].append(iris_ios_dependencies)
+            platform_data['cocoapods'] = ios_dependencies
+            platform_data['iris_cocoapods'] = iris_ios_dependencies
 
         if platform == 'Windows':
             for pattern in windows_cdnRegex:
@@ -129,16 +129,19 @@ def parse_content(input_string):
                         platform_data['iris_cdn'].append(match)
                     else:
                         platform_data['cdn'].append(match)
-            platform_data['cocoapods'].append(macos_dependencies)
-            platform_data['iris_cocoapods'].append(iris_macos_dependencies)
+            platform_data['cocoapods'] = macos_dependencies
+            platform_data['iris_cocoapods'] = iris_macos_dependencies
 
         result.append(platform_data)
 
     return result
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Parse input string for dependencies and CDN URLs.')
-    parser.add_argument('input_string', type=str, help='The input string to parse')
+    parser = argparse.ArgumentParser(
+        description='Parse input string for dependencies and CDN URLs.')
+    parser.add_argument('input_string', type=str,
+                        help='The input string to parse')
 
     args = parser.parse_args()
 
@@ -219,8 +222,3 @@ if __name__ == "__main__":
 # pod 'AgoraAudio_iOS', '4.3.2.11-meeting.1'
 # pod 'AgoraRtm_iOS', '4.3.2.11-meeting.1'
 # """
-
-# Parse the input string
-# parsed_data = parse_content(input_string)
-# Print the result in JSON format
-# print(json.dumps(parsed_data[0], indent=4))
