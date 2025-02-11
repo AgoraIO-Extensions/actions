@@ -27,11 +27,13 @@ iOS_cdnRegex = [
 windows_cdnRegex = [
     r"https://download.(?:agora|shengwang)[^\s]*iris[^\s]*_Windows[^\s]*\.zip",
     r"https://download.(?:agora|shengwang)[^\s]*Native_SDK_for_Windows[^\s]*\.zip",
+    r"https://download.(?:agora|shengwang)[^\s]*windows_Preview[^\s]*\.zip",
 ]
 
 mac_cdnRegex = [
     r"https://download.(?:agora|shengwang)[^\s]*iris[^\s]*_Mac[^\s]*\.zip",
     r"https://download.(?:agora|shengwang)[^\s]*Native_SDK_for_Mac[^\s]*\.zip",
+    r"https://download.(?:agora|shengwang)[^\s]*macOS_Preview[^\s]*\.zip",
 ]
 
 cocoapodsRegex = [
