@@ -1,0 +1,100 @@
+name: move Package to Shenwang repo
+
+inputs:
+  github-email:
+    description: GIT_EMAIL from secrets
+    required: true
+  github-username:
+    description: GIT_USERNAME from secrets
+    required: true
+  github-private-key:
+    description: GH_PRIVATE_KEY from secrets
+    required: true
+  github-token:
+    description: >
+      GITHUB_TOKEN (permissions contents: write and pull-requests: write) or a repo scoped Personal Access Token (PAT).
+    required: true
+  source-repo:
+    description: 'Source repository (e.g., owner/repo)'
+    required: true
+  target-repo:
+    description: 'Target repository (e.g., owner/repo)'
+    required: true
+  target-branch:
+    description: 'Target branch to commit to'
+    required: true
+  pre-command:
+    description: The bash script will run before commit.
+    required: true
+  create-pr:
+    description: 'if need create pr'
+    type: boolean
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout target repo
+      uses: actions/checkout@v4
+      with:
+        token: ${{ inputs.github-token }}
+        path: ${{ inputs.target-repo }}
+        repository: ${{ github.repository_owner }}/${{ inputs.target-repo }}
+
+    - name: Configure git
+      run: |
+        git config --global user.email "${{ inputs.github-email }}"
+        git config --global user.name "${{ inputs.github-username }}"
+        git config --global push.autoSetupRemote true
+      shell: bash
+
+    - name: Add source repo as remote
+      run: |
+        git remote add agora https://github.com/${{ github.repository_owner }}/${{ inputs.source-repo }}.git
+        git fetch agora
+      shell: bash
+      working-directory: ${{ inputs.target-repo }}
+
+    - name: Rebase source repo onto target repo
+      run: |
+        git checkout ${{ inputs.target-branch }}
+        git rebase agora/${{ inputs.target-branch }}
+      shell: bash
+      working-directory: ${{ inputs.target-repo }}
+
+    - name: Push changes to target repo
+      run: |
+        git push origin ${{ inputs.target-branch }} --force
+        git remote remove agora
+      shell: bash
+      working-directory: ${{ inputs.target-repo }}
+
+    - name: Run pre-command
+      run: |
+        ${{ inputs.pre-command }}
+      shell: bash
+      working-directory: ${{ inputs.target-repo }}
+
+    - name: Commit directly
+      if: ${{ !inputs.create-pr }}
+      run: |
+        git add .
+        git commit -m '[AUTO]change package from agora to shengwang'
+        git push origin ${{ inputs.target-branch }} --force
+      working-directory: ${{ inputs.target-repo }}
+      shell: bash
+
+    - name: Create pull request
+      if: ${{ inputs.create-pr }}
+      uses: AgoraIO-Extensions/actions/.github/actions/pr@sync
+      with:
+        github-token: ${{ inputs.github-token }}
+        target-repo: ${{ inputs.target-repo }}
+        target-branch: ${{ inputs.target-branch }}
+        target-branch-name-surffix: shengwang-sync-auto
+        pull-request-title: |
+          [AUTO]change package from agora to shengwang
+        pull-request-body: |
+          This is an auto-generated PR to sync agora to shengwang
+          Please review changes and check the CI status.
+          If everything is fine, please merge this PR.
