@@ -41,8 +41,12 @@ cocoapodsRegex = [
     r"pod\s*'(?:Shengwang|Agora)(?:RtcEngine|Audio|Rtm)(?:_Special)?(?:_iOS|_macOS)(?:_Preview)?'\s*,\s*'[0-9a-zA-Z.-]+'(?!\s*,\s*:subspecs)",
 ]
 
+web_cdnRegex = [
+    r"https://download.(?:agora|shengwang)[^\s]*iris[^\s]*-web[^\s]*\.zip",
+]
+
 def parse_content(input_string):
-    platforms = ['iOS', 'macOS', 'Android', 'Windows']
+    platforms = ['iOS', 'macOS', 'Android', 'Windows', 'Web']
     result = []
 
     # Extract Cocoapods dependencies
@@ -134,6 +138,12 @@ def parse_content(input_string):
             platform_data['cocoapods'] = macos_dependencies
             platform_data['iris_cocoapods'] = iris_macos_dependencies
 
+        if platform == 'Web':
+            for pattern in web_cdnRegex:
+                found = re.findall(pattern, input_string)
+                for match in found:
+                    if 'iris' in match.lower():
+                        platform_data['iris_cdn'].append(match)
         result.append(platform_data)
 
     return result
