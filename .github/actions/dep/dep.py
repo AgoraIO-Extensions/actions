@@ -42,7 +42,7 @@ cocoapodsRegex = [
 ]
 
 web_cdnRegex = [
-    r"https://download.(?:agora|shengwang)[^\s]*iris[^\s]*-web[^\s]*\.zip",
+    r"https://download.(?:agora|shengwang)[^\s]*iris-web[^\s]*\.js",
 ]
 
 def parse_content(input_string):
