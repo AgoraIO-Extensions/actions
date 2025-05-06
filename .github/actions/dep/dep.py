@@ -39,6 +39,7 @@ mac_cdnRegex = [
 cocoapodsRegex = [
     r"pod\s*'(?:Shengwang|Agora)(?:IrisRTC|IrisRTM)?(?:_iOS|_macOS)(?:_Preview)?'\s*,\s*'[0-9a-zA-Z.-]+'(?!\s*,\s*:subspecs)",
     r"pod\s*'(?:Shengwang|Agora)(?:RtcEngine|Audio|Rtm)(?:_Special)?(?:_iOS|_macOS)(?:_Preview)?'\s*,\s*'[0-9a-zA-Z.-]+'(?!\s*,\s*:subspecs)",
+    r"pod\s*'(?:ShengwangRtm|AgoraRtm)(?:_Preview)?'\s*,\s*'[0-9a-zA-Z.-]+'(?!\s*,\s*:subspecs)",
 ]
 
 web_cdnRegex = [
