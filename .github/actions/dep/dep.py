@@ -68,6 +68,9 @@ def parse_content(input_string):
                     iris_macos_dependencies.append(match)
                 else:
                     macos_dependencies.append(match)
+            else:
+                ios_dependencies.append(match)
+                macos_dependencies.append(match)
 
     # Extract Maven dependencies
     maven_dependencies = []
