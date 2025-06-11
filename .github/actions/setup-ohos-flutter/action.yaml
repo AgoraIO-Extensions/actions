@@ -1,0 +1,139 @@
+name: Setup OHOS Flutter
+description: Setup OHOS Flutter environment.
+
+inputs:
+  flutter_version:
+    description: The version of Flutter
+    default: '3.26.0'
+  flutter_download_url:
+    description: The download url of Flutter
+    required: true
+  cache:
+    description: Whether to cache the Flutter environment
+    required: false
+    default: 'false'
+
+outputs:
+  FLUTTER_HOME:
+    description: The path to the Flutter environment (env)
+    value: ${{ steps.setup-flutter.outputs.FLUTTER_HOME }}
+  FLUTTER_HOME_BIN:
+    description: The path to the Flutter home bin (env and path)
+    value: ${{ steps.setup-flutter.outputs.FLUTTER_HOME_BIN }}
+  PUB_CACHE:
+    description: The path to the Flutter pub cache (env)
+    value: ${{ steps.setup-flutter.outputs.PUB_CACHE }}
+  PUB_HOSTED_URL:
+    description: The pub hosted url (env)
+    value: ${{ steps.setup-flutter.outputs.PUB_HOSTED_URL }}
+  FLUTTER_STORAGE_BASE_URL:
+    description: The flutter storage base url (env)
+    value: ${{ steps.setup-flutter.outputs.FLUTTER_STORAGE_BASE_URL }}
+  FLUTTER_GIT_URL:
+    description: The flutter git url (env)
+    value: ${{ steps.setup-flutter.outputs.FLUTTER_GIT_URL }}
+  FLUTTER_GIT_REF:
+    description: The flutter git ref (env)
+    value: ${{ steps.setup-flutter.outputs.FLUTTER_GIT_REF }}
+
+runs:
+  using: composite
+  steps:
+    - name: Check Input Flutter Version
+      id: check-flutter-version
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.flutter_download_url }}" ] || [ -z "${{ inputs.flutter_version }}" ]; then
+          echo "flutter_download_url or flutter_version is not set"
+          exit 1
+        fi
+        echo "FLUTTER_DOWNLOAD_URL=${{ inputs.flutter_download_url }}" >> $GITHUB_OUTPUT
+        echo "FLUTTER_CACHE_KEY=flutter-${{ runner.os}}-${{ inputs.flutter_version }}" >> $GITHUB_OUTPUT
+        echo "FLUTTER_CACHE_ROOT=$RUNNER_TEMP/flutter" >> $GITHUB_OUTPUT
+        echo "FLUTTER_CACHE_PATH=$RUNNER_TEMP/flutter/${{ runner.os}}-${{ inputs.flutter_version }}" >> $GITHUB_OUTPUT
+
+    - name: Restore Cache Flutter
+      if: inputs.cache == 'true'
+      id: cache-flutter-restore
+      uses: actions/cache/restore@v4
+      with:
+        key: ${{ steps.check-flutter-version.outputs.FLUTTER_CACHE_KEY }}
+        path: ${{ steps.check-flutter-version.outputs.FLUTTER_CACHE_PATH }}
+
+    - name: Download Flutter
+      if: steps.cache-flutter-restore.outputs.cache-hit != 'true'
+      id: download-flutter
+      env:
+        FLUTTER_DOWNLOAD_URL: ${{ steps.check-flutter-version.outputs.FLUTTER_DOWNLOAD_URL }}
+        FLUTTER_CACHE_ROOT: ${{ steps.check-flutter-version.outputs.FLUTTER_CACHE_ROOT }}
+        FLUTTER_CACHE_PATH: ${{ steps.check-flutter-version.outputs.FLUTTER_CACHE_PATH }}
+      shell: bash
+      run: |
+        echo "Download Flutter"
+        mkdir -p ${{ env.FLUTTER_CACHE_ROOT }}
+        curl -L -o ${{ env.FLUTTER_CACHE_ROOT }}/flutter.zip ${{ env.FLUTTER_DOWNLOAD_URL }}
+        if [ $? -ne 0 ]; then
+          echo "Download Flutter failed"
+          exit 1
+        fi
+        mkdir -p ${{ env.FLUTTER_CACHE_PATH }}
+        echo "::group::Unzipping archive"
+        unzip ${{ env.FLUTTER_CACHE_ROOT }}/flutter.zip -d ${{ env.FLUTTER_CACHE_PATH }}
+        if [ $? -ne 0 ]; then
+          echo "Unzip Flutter failed"
+          exit 1
+        fi
+        echo "::endgroup::"
+
+    - name: Save Cache Flutter
+      if: steps.cache-flutter-restore.outputs.cache-hit != 'true'
+      id: cache-flutter-save
+      uses: actions/cache/save@v4
+      with:
+        key: ${{ steps.check-flutter-version.outputs.FLUTTER_CACHE_KEY }}
+        path: ${{ steps.check-flutter-version.outputs.FLUTTER_CACHE_PATH }}
+
+    - name: Setup Flutter
+      id: setup-flutter
+      env:
+        FLUTTER_CACHE_PATH: ${{ steps.check-flutter-version.outputs.FLUTTER_CACHE_PATH }}
+      shell: bash
+      run: |
+        echo "Try to find folder 'flutter' in $FLUTTER_CACHE_PATH"
+        FLUTTER_HOME=$(find $FLUTTER_CACHE_PATH -name "flutter.bat" | sed 's/\/bin\/flutter.bat//')
+        if [ -z "$FLUTTER_HOME" ]; then
+          echo "flutter not found"
+          exit 1
+        fi
+        echo "flutter found in $FLUTTER_HOME"
+        FLUTTER_HOME_BIN=$FLUTTER_HOME/bin
+        PUB_CACHE=$FLUTTER_HOME/.pub-cache
+        PUB_HOSTED_URL=https://pub.flutter-io.cn
+        FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
+        FLUTTER_GIT_URL=https://gitcode.com/openharmony-sig/flutter_flutter.git
+        CURRENT_DIR=$(pwd)
+        cd $FLUTTER_HOME
+        echo "${{ inputs.flutter_version }}" > version
+        git config --global init.defaultBranch master
+        git config --global --add safe.directory $FLUTTER_HOME
+        git init
+        git add README.md
+        git commit -m "init"
+        git tag "${{ inputs.flutter_version }}"
+        git log
+        git tag -l
+        git status
+        cd $CURRENT_DIR
+        echo "FLUTTER_HOME=$FLUTTER_HOME" >> $GITHUB_OUTPUT
+        echo "FLUTTER_HOME=$FLUTTER_HOME" >> $GITHUB_ENV
+        echo "FLUTTER_HOME_BIN=$FLUTTER_HOME_BIN" >> $GITHUB_OUTPUT
+        echo "FLUTTER_HOME_BIN=$FLUTTER_HOME_BIN" >> $GITHUB_ENV
+        echo "$FLUTTER_HOME_BIN" >> $GITHUB_PATH
+        echo "PUB_CACHE=$PUB_CACHE" >> $GITHUB_OUTPUT
+        echo "PUB_CACHE=$PUB_CACHE" >> $GITHUB_ENV
+        echo "PUB_HOSTED_URL=$PUB_HOSTED_URL" >> $GITHUB_OUTPUT
+        echo "PUB_HOSTED_URL=$PUB_HOSTED_URL" >> $GITHUB_ENV
+        echo "FLUTTER_STORAGE_BASE_URL=$FLUTTER_STORAGE_BASE_URL" >> $GITHUB_OUTPUT
+        echo "FLUTTER_STORAGE_BASE_URL=$FLUTTER_STORAGE_BASE_URL" >> $GITHUB_ENV
+        echo "FLUTTER_GIT_URL=$FLUTTER_GIT_URL" >> $GITHUB_OUTPUT
+        echo "FLUTTER_GIT_URL=$FLUTTER_GIT_URL" >> $GITHUB_ENV
