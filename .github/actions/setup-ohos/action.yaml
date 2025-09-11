@@ -1,0 +1,170 @@
+name: Setup OHOS
+description: Setup OHOS environment.
+
+inputs:
+  ohos_version:
+    description: The version of OHOS, support 5.0.13.200 for now
+    default: '5.0.13.200'
+  ohos_download_url:
+    description: The download url of OHOS
+    required: true
+  cache:
+    description: Whether to cache the OHOS environment
+    required: false
+    default: 'false'
+
+outputs:
+  OHOS_COMMANDLINE_HOME:
+    description: The path to the OHOS environment
+    value: ${{ steps.setup-ohos.outputs.OHOS_COMMANDLINE_HOME }}
+  OHOS_COMMANDLINE_BIN:
+    description: The path to the OHOS commandline bin(env and path)
+    value: ${{ steps.setup-ohos.outputs.OHOS_COMMANDLINE_BIN }}
+  OHOS_COMMANDLINE_TOOL_NODE_BIN:
+    description: The path to the OHOS commandline tool node bin(env and path)
+    value: ${{ steps.setup-ohos.outputs.OHOS_COMMANDLINE_TOOL_NODE_BIN }}
+  HOS_SDK_HOME:
+    description: The path to the HOS SDK(env)
+    value: ${{ steps.setup-ohos.outputs.HOS_SDK_HOME }}
+  OHOS_BASE_SDK_HOME:
+    description: The path to the OHOS base SDK(env)
+    value: ${{ steps.setup-ohos.outputs.OHOS_BASE_SDK_HOME }}
+  OHOS_NDK_HOME:
+    description: The path to the OHOS NDK(env)
+    value: ${{ steps.setup-ohos.outputs.OHOS_NDK_HOME }}
+  OHOS_SDK_NATIVE:
+    description: The path to the OHOS SDK native(env)
+    value: ${{ steps.setup-ohos.outputs.OHOS_SDK_NATIVE }}
+  OHOS_HDC_HOME:
+    description: The path to the OHOS HDC(env and path)
+    value: ${{ steps.setup-ohos.outputs.OHOS_HDC_HOME }}
+  OHOS_OHPM_HOME:
+    description: The path to the OHOS OHPM(env)
+    value: ${{ steps.setup-ohos.outputs.OHOS_OHPM_HOME }}
+  OHOS_OHPM_BIN:
+    description: The path to the OHOS OHPM bin(env and path)
+    value: ${{ steps.setup-ohos.outputs.OHOS_OHPM_BIN }}
+
+runs:
+  using: composite
+  steps:
+    - name: Check Input  OHOS Version
+      id: check-ohos-version
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.ohos_download_url }}" ] || [ -z "${{ inputs.ohos_version }}" ]; then
+          echo "ohos_download_url or ohos_version is not set"
+          exit 1
+        fi
+        echo "OHOS_DOWNLOAD_URL=${{ inputs.ohos_download_url }}" >> $GITHUB_OUTPUT
+        echo "OHOS_CACHE_KEY=ohos-sdk-${{ runner.os}}-${{ inputs.ohos_version }}" >> $GITHUB_OUTPUT
+        echo "OHOS_CACHE_ROOT=$RUNNER_TEMP/ohos-sdk" >> $GITHUB_OUTPUT
+        echo "OHOS_CACHE_PATH=$RUNNER_TEMP/ohos-sdk/${{ runner.os}}-${{ inputs.ohos_version }}" >> $GITHUB_OUTPUT
+
+    - name: Restore Cache OHOS
+      if: inputs.cache == 'true'
+      id: cache-ohos-restore
+      uses: actions/cache/restore@v4
+      with:
+        key: ${{ steps.check-ohos-version.outputs.OHOS_CACHE_KEY }}
+        path: ${{ steps.check-ohos-version.outputs.OHOS_CACHE_PATH }}
+
+    - name: Download OHOS
+      if: steps.cache-ohos-restore.outputs.cache-hit != 'true'
+      id: download-ohos
+      env:
+        OHOS_DOWNLOAD_URL: ${{ steps.check-ohos-version.outputs.OHOS_DOWNLOAD_URL }}
+        OHOS_CACHE_ROOT: ${{ steps.check-ohos-version.outputs.OHOS_CACHE_ROOT }}
+        OHOS_CACHE_PATH: ${{ steps.check-ohos-version.outputs.OHOS_CACHE_PATH }}
+      shell: bash
+      run: |
+        echo "Download OHOS"
+        mkdir -p ${{ env.OHOS_CACHE_ROOT }}
+        curl -L -o ${{ env.OHOS_CACHE_ROOT }}/ohos-sdk.zip ${{ env.OHOS_DOWNLOAD_URL }}
+        if [ $? -ne 0 ]; then
+          echo "Download OHOS failed"
+          exit 1
+        fi
+        mkdir -p ${{ env.OHOS_CACHE_PATH }}
+        echo "::group::Unzipping archive"
+        unzip ${{ env.OHOS_CACHE_ROOT }}/ohos-sdk.zip -d ${{ env.OHOS_CACHE_PATH }}
+        if [ $? -ne 0 ]; then
+          echo "Unzip OHOS failed"
+          exit 1
+        fi
+        echo "::endgroup::"
+    
+    - name: Save Cache OHOS
+      if: steps.cache-ohos-restore.outputs.cache-hit != 'true'
+      id: cache-ohos-save
+      uses: actions/cache/save@v4
+      with:
+        key: ${{ steps.check-ohos-version.outputs.OHOS_CACHE_KEY }}
+        path: ${{ steps.check-ohos-version.outputs.OHOS_CACHE_PATH }}
+
+# The internal folder structure is as follows:
+# OHOS_CACHE_PATH/command-line-tools/     # OHOS_COMMANDLINE_HOME
+# ├── bin                                 # OHOS_COMMANDLINE_BIN
+# ├── ohpm                                # OHOS_OHPM_HOME
+# │   └── bin                             # OHOS_OHPM_BIN
+# ├── sdk                                 # HOS_SDK_HOME
+# │   └── default                         
+# │       ├── hms                         
+# │       │   └── native                  
+# │       └── openharmony                 # OHOS_BASE_SDK_HOME && OHOS_NDK_HOME
+# │           ├── native                  # OHOS_SDK_NATIVE
+# │           └── toolchains              # OHOS_HDC_HOME
+# └── tool                                
+#     └── node                            
+#         └── bin                         # OHOS_COMMANDLINE_TOOL_NODE_BIN
+#
+# Every folder should found in the OHOS_CACHE_PATH and set to the env, otherwise the action will exit 1
+    - name: Setup OHOS
+      id: setup-ohos
+      env:
+        OHOS_CACHE_PATH: ${{ steps.check-ohos-version.outputs.OHOS_CACHE_PATH }}
+      shell: bash
+      run: |
+        echo "Try to find folder 'command-line-tools' in $OHOS_CACHE_PATH"
+        OHOS_COMMANDLINE_HOME=$(find $OHOS_CACHE_PATH -name "ohpm.bat" | sed 's/\/ohpm\/bin\/ohpm.bat//')
+        if [ -z "$OHOS_COMMANDLINE_HOME" ]; then
+          echo "command-line-tools not found"
+          exit 1
+        fi
+        echo "command-line-tools found in $OHOS_COMMANDLINE_HOME"
+        OHOS_COMMANDLINE_BIN=$OHOS_COMMANDLINE_HOME/bin
+        OHOS_COMMANDLINE_TOOL_NODE_BIN=$OHOS_COMMANDLINE_HOME/tool/node/bin
+        HOS_SDK_HOME=$OHOS_COMMANDLINE_HOME/sdk
+        OHOS_BASE_SDK_HOME=$HOS_SDK_HOME/default/openharmony
+        OHOS_NDK_HOME=$HOS_SDK_HOME/default/openharmony
+        OHOS_SDK_NATIVE=$OHOS_NDK_HOME/native
+        OHOS_HDC_HOME=$OHOS_NDK_HOME/toolchains
+        OHOS_OHPM_HOME=$OHOS_COMMANDLINE_HOME/ohpm
+        OHOS_OHPM_BIN=$OHOS_OHPM_HOME/bin
+        echo "OHOS_COMMANDLINE_HOME=$OHOS_COMMANDLINE_HOME" >> $GITHUB_OUTPUT
+        echo "OHOS_COMMANDLINE_BIN=$OHOS_COMMANDLINE_BIN" >> $GITHUB_OUTPUT
+        echo "$OHOS_COMMANDLINE_BIN" >> $GITHUB_PATH
+        echo "OHOS_COMMANDLINE_BIN=$OHOS_COMMANDLINE_BIN" >> $GITHUB_ENV
+        echo "OHOS_COMMANDLINE_TOOL_NODE_BIN=$OHOS_COMMANDLINE_TOOL_NODE_BIN" >> $GITHUB_OUTPUT
+        echo "$OHOS_COMMANDLINE_TOOL_NODE_BIN" >> $GITHUB_PATH
+        echo "OHOS_COMMANDLINE_TOOL_NODE_BIN=$OHOS_COMMANDLINE_TOOL_NODE_BIN" >> $GITHUB_ENV
+        echo "HOS_SDK_HOME=$HOS_SDK_HOME" >> $GITHUB_OUTPUT
+        echo "HOS_SDK_HOME=$HOS_SDK_HOME" >> $GITHUB_ENV
+        echo "OHOS_BASE_SDK_HOME=$OHOS_BASE_SDK_HOME" >> $GITHUB_OUTPUT
+        echo "OHOS_BASE_SDK_HOME=$OHOS_BASE_SDK_HOME" >> $GITHUB_ENV
+        echo "OHOS_NDK_HOME=$OHOS_NDK_HOME" >> $GITHUB_OUTPUT
+        echo "OHOS_NDK_HOME=$OHOS_NDK_HOME" >> $GITHUB_ENV
+        echo "OHOS_SDK_NATIVE=$OHOS_SDK_NATIVE" >> $GITHUB_OUTPUT
+        echo "OHOS_SDK_NATIVE=$OHOS_SDK_NATIVE" >> $GITHUB_ENV
+        echo "OHOS_HDC_HOME=$OHOS_HDC_HOME" >> $GITHUB_OUTPUT
+        echo "OHOS_HDC_HOME=$OHOS_HDC_HOME" >> $GITHUB_ENV
+        echo "$OHOS_HDC_HOME" >> $GITHUB_PATH
+        echo "OHOS_OHPM_HOME=$OHOS_OHPM_HOME" >> $GITHUB_OUTPUT
+        echo "OHOS_OHPM_HOME=$OHOS_OHPM_HOME" >> $GITHUB_ENV
+        echo "OHOS_OHPM_BIN=$OHOS_OHPM_BIN" >> $GITHUB_OUTPUT
+        echo "OHOS_OHPM_BIN=$OHOS_OHPM_BIN" >> $GITHUB_ENV
+        echo "$OHOS_OHPM_BIN" >> $GITHUB_PATH
+        $OHOS_COMMANDLINE_TOOL_NODE_BIN/npm config set registry https://repo.huaweicloud.com/repository/npm/
+        $OHOS_COMMANDLINE_TOOL_NODE_BIN/npm config set "@ohos:registry" https://repo.harmonyos.com/npm/
+        $OHOS_OHPM_BIN/ohpm config set registry https://ohpm.openharmony.cn/ohpm/
+        $OHOS_OHPM_BIN/ohpm config set strict_ssl false
