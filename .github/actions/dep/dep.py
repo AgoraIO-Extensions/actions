@@ -46,6 +46,9 @@ web_cdnRegex = [
     r"https://download.(?:agora|shengwang)[^\s]*iris-web[^\s]*\.js",
 ]
 
+cdn_versionRegex = r'(\d+\.\d+\.\d+(?:\.\d+)?(?:-build\.\d+)?(?:-meeting\.\d+)?(?:-preview)?)'
+
+
 def parse_content(input_string):
     platforms = ['iOS', 'macOS', 'Android', 'Windows', 'Web']
     result = []
@@ -97,7 +100,8 @@ def parse_content(input_string):
             'maven': [],
             'iris_cocoapods': [],
             'iris_maven': [],
-            'iris_cdn': []
+            'iris_cdn': [],
+            'version': ''
         }
 
         if platform == 'Android':
@@ -128,8 +132,10 @@ def parse_content(input_string):
                 for match in found:
                     if 'iris' in match.lower():
                         platform_data['iris_cdn'].append(match)
+                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
                     else:
                         platform_data['cdn'].append(match)
+                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
 
         if platform == 'macOS':
             for pattern in mac_cdnRegex:
@@ -137,8 +143,10 @@ def parse_content(input_string):
                 for match in found:
                     if 'iris' in match.lower():
                         platform_data['iris_cdn'].append(match)
+                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
                     else:
                         platform_data['cdn'].append(match)
+                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
             platform_data['cocoapods'] = macos_dependencies
             platform_data['iris_cocoapods'] = iris_macos_dependencies
 
