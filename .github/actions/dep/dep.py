@@ -42,6 +42,11 @@ cocoapodsRegex = [
     r"pod\s*'(?:ShengwangRtm|AgoraRtm)(?:_Preview)?'\s*,\s*'[0-9a-zA-Z.-]+'(?!\s*,\s*:subspecs)",
 ]
 
+linux_cdnRegex = [
+    r"https://download.(?:agora|shengwang)[^\s]*iris[^\s]*_Linux[^\s]*\.zip",
+    r"https://download.(?:agora|shengwang)[^\s]*Native_SDK_for_Linux[^\s]*\.zip",
+]
+
 web_cdnRegex = [
     r"https://download.(?:agora|shengwang)[^\s]*iris-web[^\s]*\.js",
 ]
@@ -50,7 +55,7 @@ cdn_versionRegex = r'(\d+\.\d+\.\d+(?:\.\d+)?(?:-build\.\d+)?(?:-meeting\.\d+)?(
 
 
 def parse_content(input_string):
-    platforms = ['iOS', 'macOS', 'Android', 'Windows', 'Web']
+    platforms = ['iOS', 'macOS', 'Android', 'Windows', 'Linux', 'Web']
     result = []
 
     # Extract Cocoapods dependencies
@@ -150,6 +155,17 @@ def parse_content(input_string):
             platform_data['cocoapods'] = macos_dependencies
             platform_data['iris_cocoapods'] = iris_macos_dependencies
 
+        if platform == 'Linux':
+            for pattern in linux_cdnRegex:
+                found = re.findall(pattern, input_string)
+                for match in found:
+                    if 'iris' in match.lower():
+                        platform_data['iris_cdn'].append(match)
+                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
+                    else:
+                        platform_data['cdn'].append(match)
+                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
+
         if platform == 'Web':
             for pattern in web_cdnRegex:
                 found = re.findall(pattern, input_string)
@@ -245,4 +261,14 @@ if __name__ == "__main__":
 # pod 'AgoraAudio_Special_iOS', '4.3.2.11-meeting.1'
 # pod 'AgoraAudio_iOS', '4.3.2.11-meeting.1'
 # pod 'AgoraRtm_iOS', '4.3.2.11-meeting.1'
+# """
+
+# input_string = """
+# # CDN
+# https://download.agora.io/sdk/release/Agora_Native_SDK_for_Linux_rel.v4.2.6.153_27683_FULL_20241230_2024_503327.zip
+# https://download.agora.io/sdk/release/Agora_Native_SDK_for_Linux_v4.5.0_FULL.zip
+
+# # IRIS
+# https://download.agora.io/sdk/release/iris_4.3.2.11-meeting.1_DCG_Linux_Video_20250122_0421_597.zip
+# https://download.agora.io/sdk/release/iris_4.3.2.11-meeting.1_DCG_Linux_Video_Standalone_20250122_0421_597.zip
 # """
