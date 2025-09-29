@@ -110,8 +110,10 @@ def parse_content(input_string):
                 for match in found:
                     if 'iris' in match.lower():
                         platform_data['iris_cdn'].append(match)
+                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
                     else:
                         platform_data['cdn'].append(match)
+                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
             platform_data['maven'] = maven_dependencies
             platform_data['iris_maven'] = iris_maven_dependencies
 
@@ -121,8 +123,10 @@ def parse_content(input_string):
                 for match in found:
                     if 'iris' in match.lower():
                         platform_data['iris_cdn'].append(match)
+                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
                     else:
                         platform_data['cdn'].append(match)
+                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
             platform_data['cocoapods'] = ios_dependencies
             platform_data['iris_cocoapods'] = iris_ios_dependencies
 
@@ -156,6 +160,10 @@ def parse_content(input_string):
                 for match in found:
                     if 'iris' in match.lower():
                         platform_data['iris_cdn'].append(match)
+                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
+                    else:
+                        platform_data['cdn'].append(match)
+                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
         result.append(platform_data)
 
     return result
