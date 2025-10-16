@@ -37,6 +37,12 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Create timestamp
+      id: timestamp
+      run: |
+        echo "timestamp=$(date +%Y%m%d%H%M)" >> $GITHUB_OUTPUT
+      shell: bash
+
     - name: Create pull request
       uses: peter-evans/create-pull-request@v5
       with:
@@ -44,7 +50,7 @@ runs:
         path: ${{ inputs.target-repo }}
         add-paths: ${{ inputs.add-paths }}
         commit-message: ${{ inputs.pull-request-title }}
-        branch: "${{ inputs.target-branch }}-${{ inputs.target-branch-name-surffix }}"
+        branch: "${{ inputs.target-branch }}-${{ inputs.target-branch-name-surffix }}-${{ steps.timestamp.outputs.timestamp }}"
         delete-branch: true
         base: ${{ inputs.target-branch }}
         title: ${{ inputs.pull-request-title }}
