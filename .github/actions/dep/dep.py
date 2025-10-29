@@ -107,6 +107,8 @@ def parse_content(input_string):
             'iris_cocoapods': [],
             'iris_maven': [],
             'iris_cdn': [],
+            'iris_unity': [],
+            'iris_standalone': [],
             'version': ''
         }
 
@@ -115,7 +117,13 @@ def parse_content(input_string):
                 found = re.findall(pattern, input_string)
                 for match in found:
                     if 'iris' in match.lower():
-                        platform_data['iris_cdn'].append(match)
+                        # Categorize iris URLs
+                        if 'unity' in match.lower():
+                            platform_data['iris_unity'].append(match)
+                        elif 'standalone' in match.lower():
+                            platform_data['iris_standalone'].append(match)
+                        else:
+                            platform_data['iris_cdn'].append(match)
                         platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
                     else:
                         platform_data['cdn'].append(match)
@@ -123,7 +131,7 @@ def parse_content(input_string):
             platform_data['maven'] = maven_dependencies
             platform_data['iris_maven'] = iris_maven_dependencies
             
-            # Determine product_type based on cdn or iris_cdn
+            # Determine product_type based on cdn or iris_cdn (not iris_unity or iris_standalone)
             if platform_data['cdn'] or platform_data['iris_cdn']:
                 if any('rtm' in url.lower() for url in platform_data['cdn']) or \
                    any('rtm' in url.lower() for url in platform_data['iris_cdn']):
@@ -136,7 +144,13 @@ def parse_content(input_string):
                 found = re.findall(pattern, input_string)
                 for match in found:
                     if 'iris' in match.lower():
-                        platform_data['iris_cdn'].append(match)
+                        # Categorize iris URLs
+                        if 'unity' in match.lower():
+                            platform_data['iris_unity'].append(match)
+                        elif 'standalone' in match.lower():
+                            platform_data['iris_standalone'].append(match)
+                        else:
+                            platform_data['iris_cdn'].append(match)
                         platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
                     else:
                         platform_data['cdn'].append(match)
@@ -144,7 +158,7 @@ def parse_content(input_string):
             platform_data['cocoapods'] = ios_dependencies
             platform_data['iris_cocoapods'] = iris_ios_dependencies
             
-            # Determine product_type based on cdn or iris_cdn
+            # Determine product_type based on cdn or iris_cdn (not iris_unity or iris_standalone)
             if platform_data['cdn'] or platform_data['iris_cdn']:
                 if any('rtm' in url.lower() for url in platform_data['cdn']) or \
                    any('rtm' in url.lower() for url in platform_data['iris_cdn']):
@@ -157,13 +171,19 @@ def parse_content(input_string):
                 found = re.findall(pattern, input_string)
                 for match in found:
                     if 'iris' in match.lower():
-                        platform_data['iris_cdn'].append(match)
+                        # Categorize iris URLs
+                        if 'unity' in match.lower():
+                            platform_data['iris_unity'].append(match)
+                        elif 'standalone' in match.lower():
+                            platform_data['iris_standalone'].append(match)
+                        else:
+                            platform_data['iris_cdn'].append(match)
                         platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
                     else:
                         platform_data['cdn'].append(match)
                         platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
             
-            # Determine product_type based on cdn or iris_cdn
+            # Determine product_type based on cdn or iris_cdn (not iris_unity or iris_standalone)
             if platform_data['cdn'] or platform_data['iris_cdn']:
                 if any('rtm' in url.lower() for url in platform_data['cdn']) or \
                    any('rtm' in url.lower() for url in platform_data['iris_cdn']):
@@ -176,7 +196,13 @@ def parse_content(input_string):
                 found = re.findall(pattern, input_string)
                 for match in found:
                     if 'iris' in match.lower():
-                        platform_data['iris_cdn'].append(match)
+                        # Categorize iris URLs
+                        if 'unity' in match.lower():
+                            platform_data['iris_unity'].append(match)
+                        elif 'standalone' in match.lower():
+                            platform_data['iris_standalone'].append(match)
+                        else:
+                            platform_data['iris_cdn'].append(match)
                         platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
                     else:
                         platform_data['cdn'].append(match)
@@ -184,7 +210,7 @@ def parse_content(input_string):
             platform_data['cocoapods'] = macos_dependencies
             platform_data['iris_cocoapods'] = iris_macos_dependencies
             
-            # Determine product_type based on cdn or iris_cdn
+            # Determine product_type based on cdn or iris_cdn (not iris_unity or iris_standalone)
             if platform_data['cdn'] or platform_data['iris_cdn']:
                 if any('rtm' in url.lower() for url in platform_data['cdn']) or \
                    any('rtm' in url.lower() for url in platform_data['iris_cdn']):
@@ -197,13 +223,19 @@ def parse_content(input_string):
                 found = re.findall(pattern, input_string)
                 for match in found:
                     if 'iris' in match.lower():
-                        platform_data['iris_cdn'].append(match)
+                        # Categorize iris URLs
+                        if 'unity' in match.lower():
+                            platform_data['iris_unity'].append(match)
+                        elif 'standalone' in match.lower():
+                            platform_data['iris_standalone'].append(match)
+                        else:
+                            platform_data['iris_cdn'].append(match)
                         platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
                     else:
                         platform_data['cdn'].append(match)
                         platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
             
-            # Determine product_type based on cdn or iris_cdn
+            # Determine product_type based on cdn or iris_cdn (not iris_unity or iris_standalone)
             if platform_data['cdn'] or platform_data['iris_cdn']:
                 if any('rtm' in url.lower() for url in platform_data['cdn']) or \
                    any('rtm' in url.lower() for url in platform_data['iris_cdn']):
@@ -216,13 +248,19 @@ def parse_content(input_string):
                 found = re.findall(pattern, input_string)
                 for match in found:
                     if 'iris' in match.lower():
-                        platform_data['iris_cdn'].append(match)
+                        # Categorize iris URLs
+                        if 'unity' in match.lower():
+                            platform_data['iris_unity'].append(match)
+                        elif 'standalone' in match.lower():
+                            platform_data['iris_standalone'].append(match)
+                        else:
+                            platform_data['iris_cdn'].append(match)
                         platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
                     else:
                         platform_data['cdn'].append(match)
                         platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
         
-        # Determine product_type based on cdn or iris_cdn
+        # Determine product_type based on cdn or iris_cdn (not iris_unity or iris_standalone)
         if platform_data['cdn'] or platform_data['iris_cdn']:
             if any('rtm' in url.lower() for url in platform_data['cdn']) or \
                any('rtm' in url.lower() for url in platform_data['iris_cdn']):
