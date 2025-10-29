@@ -7,48 +7,35 @@ import argparse
 
 
 android_cdnRegex = [
-    r"https://download.(?:agora|shengwang)[^\s]*iris[^\s]*_Android[^\s]*\.zip",
-    r"https://download.(?:agora|shengwang)[^\s]*Native_SDK_for_Android[^\s]*\.zip",
+    r"https://download\.(?:agora|shengwang)\.[^\s]*(?:Android|JAVA|Java)[^\s]*\.zip"
 ]
 
 mavenRegex = [
-    r"\b(?:implementation|api)\s+['|\"](?:cn|io)\.(?:agora|shengwang)\.rtc:?(?:agora-)?(?:special-)?(?:full|voice)?(?:-preview|-sdk)?:[a-zA-Z0-9_.-]+['|\"]",
-    r"\b(?:implementation|api)\s+['|\"](?:cn|io)\.(?:agora|shengwang)\.rtc:full-screen-sharing(?:-special)?:[a-zA-Z0-9_.-]+['|\"]",
-    r"\b(?:implementation|api)\s+['|\"](?:cn|io)\.(?:agora|shengwang)\:agora-rtm:[a-zA-Z0-9_.-]+['|\"]",
-    r"\b(?:implementation|api)\s+['|\"](?:cn|io)\.(?:agora|shengwang)\.rtc:iris-rtc(?:agora-)?(?:special-)?(?:full|voice)?(?:-preview|-sdk)?:[a-zA-Z0-9_.-]+['|\"]",
-    r"\b(?:implementation|api)\s+['|\"](?:cn|io)\.(?:agora|shengwang)\.rtm:iris-rtm(?:agora-)?(?:special-)?(?:full|voice)?(?:-preview|-sdk)?:[a-zA-Z0-9_.-]+['|\"]",
+    r"\b(?:implementation|api)\s+['\"](?:cn|io)\.(?:agora|shengwang)(?:\.[a-z]+)?:[a-zA-Z0-9_-]+:[a-zA-Z0-9_.-]+['\"]"
 ]
 
 iOS_cdnRegex = [
-    r"https://download.(?:agora|shengwang)[^\s]*iris[^\s]*_iOS[^\s]*\.zip",
-    r"https://download.(?:agora|shengwang)[^\s]*Native_SDK_for_iOS[^\s]*\.zip",
+    r"https://download\.(?:agora|shengwang)\.[^\s]*(?:_iOS|iOS_|_OC_SDK|Objective)[^\s]*\.zip"
 ]
 
 windows_cdnRegex = [
-    r"https://download.(?:agora|shengwang)[^\s]*iris[^\s]*_Windows[^\s]*\.zip",
-    r"https://download.(?:agora|shengwang)[^\s]*Native_SDK_for_Windows[^\s]*\.zip",
-    r"https://download.(?:agora|shengwang)[^\s]*windows_Preview[^\s]*\.zip",
+    r"https://download\.(?:agora|shengwang)\.[^\s]*(?:Windows|windows)[^\s]*\.zip"
 ]
 
 mac_cdnRegex = [
-    r"https://download.(?:agora|shengwang)[^\s]*iris[^\s]*_Mac[^\s]*\.zip",
-    r"https://download.(?:agora|shengwang)[^\s]*Native_SDK_for_Mac[^\s]*\.zip",
-    r"https://download.(?:agora|shengwang)[^\s]*macOS_Preview[^\s]*\.zip",
+    r"https://download\.(?:agora|shengwang)\.[^\s]*(?:_Mac|Mac_|macOS|_OC_SDK)[^\s]*\.zip"
 ]
 
 cocoapodsRegex = [
-    r"pod\s*'(?:Shengwang|Agora)(?:IrisRTC|IrisRTM)?(?:_iOS|_macOS)(?:_Preview)?'\s*,\s*'[0-9a-zA-Z.-]+'(?!\s*,\s*:subspecs)",
-    r"pod\s*'(?:Shengwang|Agora)(?:RtcEngine|Audio|Rtm)(?:_Special)?(?:_iOS|_macOS)(?:_Preview)?'\s*,\s*'[0-9a-zA-Z.-]+'(?!\s*,\s*:subspecs)",
-    r"pod\s*'(?:ShengwangRtm|AgoraRtm)(?:_Preview)?'\s*,\s*'[0-9a-zA-Z.-]+'(?!\s*,\s*:subspecs)",
+    r"pod\s+['\"](?:Shengwang|Agora)[a-zA-Z0-9_]+['\"](?:\s*,\s*['\"][a-zA-Z0-9_.-]+['\"])?(?!\s*,\s*:subspecs)"
 ]
 
 linux_cdnRegex = [
-    r"https://download.(?:agora|shengwang)[^\s]*iris[^\s]*_Linux[^\s]*\.zip",
-    r"https://download.(?:agora|shengwang)[^\s]*Native_SDK_for_Linux[^\s]*\.zip",
+    r"https://download\.(?:agora|shengwang)\.[^\s]*Linux[^\s]*\.zip"
 ]
 
 web_cdnRegex = [
-    r"https://download.(?:agora|shengwang)[^\s]*iris-web[^\s]*\.js",
+    r"https://download\.(?:agora|shengwang)\.[^\s]*(?:iris-web|web)[^\s]*\.js"
 ]
 
 cdn_versionRegex = r'(\d+\.\d+\.\d+(?:\.\d+)?(?:-build\.\d+)?(?:-meeting\.\d+)?(?:-preview)?)'
