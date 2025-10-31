@@ -94,7 +94,8 @@ def parse_content(input_string):
             'iris_cocoapods': [],
             'iris_maven': [],
             'iris_cdn': [],
-            'version': ''
+            'version': '',
+            'iris_version': ''
         }
 
         if platform == 'Android':
@@ -103,7 +104,7 @@ def parse_content(input_string):
                 for match in found:
                     if 'iris' in match.lower():
                         platform_data['iris_cdn'].append(match)
-                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
+                        platform_data['iris_version'] = re.search(cdn_versionRegex, match).group(0) or ''
                     else:
                         platform_data['cdn'].append(match)
                         platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
@@ -124,7 +125,7 @@ def parse_content(input_string):
                 for match in found:
                     if 'iris' in match.lower():
                         platform_data['iris_cdn'].append(match)
-                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
+                        platform_data['iris_version'] = re.search(cdn_versionRegex, match).group(0) or ''
                     else:
                         platform_data['cdn'].append(match)
                         platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
@@ -145,7 +146,7 @@ def parse_content(input_string):
                 for match in found:
                     if 'iris' in match.lower():
                         platform_data['iris_cdn'].append(match)
-                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
+                        platform_data['iris_version'] = re.search(cdn_versionRegex, match).group(0) or ''
                     else:
                         platform_data['cdn'].append(match)
                         platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
@@ -164,7 +165,7 @@ def parse_content(input_string):
                 for match in found:
                     if 'iris' in match.lower():
                         platform_data['iris_cdn'].append(match)
-                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
+                        platform_data['iris_version'] = re.search(cdn_versionRegex, match).group(0) or ''
                     else:
                         platform_data['cdn'].append(match)
                         platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
@@ -185,7 +186,7 @@ def parse_content(input_string):
                 for match in found:
                     if 'iris' in match.lower():
                         platform_data['iris_cdn'].append(match)
-                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
+                        platform_data['iris_version'] = re.search(cdn_versionRegex, match).group(0) or ''
                     else:
                         platform_data['cdn'].append(match)
                         platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
@@ -204,7 +205,7 @@ def parse_content(input_string):
                 for match in found:
                     if 'iris' in match.lower():
                         platform_data['iris_cdn'].append(match)
-                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
+                        platform_data['iris_version'] = re.search(cdn_versionRegex, match).group(0) or ''
                     else:
                         platform_data['cdn'].append(match)
                         platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
