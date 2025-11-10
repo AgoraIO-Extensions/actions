@@ -104,10 +104,16 @@ def parse_content(input_string):
                 for match in found:
                     if 'iris' in match.lower():
                         platform_data['iris_cdn'].append(match)
-                        platform_data['iris_version'] = re.search(cdn_versionRegex, match).group(0) or ''
+                        if re.search(cdn_versionRegex, match):
+                            platform_data['iris_version'] = re.search(cdn_versionRegex, match).group(0)
+                        else:
+                            platform_data['iris_version'] = ''
                     else:
                         platform_data['cdn'].append(match)
-                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
+                        if re.search(cdn_versionRegex, match):
+                            platform_data['version'] = re.search(cdn_versionRegex, match).group(0)
+                        else:
+                            platform_data['version'] = ''
             platform_data['maven'] = maven_dependencies
             platform_data['iris_maven'] = iris_maven_dependencies
             
@@ -125,10 +131,16 @@ def parse_content(input_string):
                 for match in found:
                     if 'iris' in match.lower():
                         platform_data['iris_cdn'].append(match)
-                        platform_data['iris_version'] = re.search(cdn_versionRegex, match).group(0) or ''
+                        if re.search(cdn_versionRegex, match):
+                            platform_data['iris_version'] = re.search(cdn_versionRegex, match).group(0)
+                        else:
+                            platform_data['iris_version'] = ''
                     else:
                         platform_data['cdn'].append(match)
-                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
+                        if re.search(cdn_versionRegex, match):
+                            platform_data['version'] = re.search(cdn_versionRegex, match).group(0)
+                        else:
+                            platform_data['version'] = ''
             platform_data['cocoapods'] = ios_dependencies
             platform_data['iris_cocoapods'] = iris_ios_dependencies
             
@@ -146,10 +158,16 @@ def parse_content(input_string):
                 for match in found:
                     if 'iris' in match.lower():
                         platform_data['iris_cdn'].append(match)
-                        platform_data['iris_version'] = re.search(cdn_versionRegex, match).group(0) or ''
+                        if re.search(cdn_versionRegex, match):
+                            platform_data['iris_version'] = re.search(cdn_versionRegex, match).group(0)
+                        else:
+                            platform_data['iris_version'] = ''
                     else:
                         platform_data['cdn'].append(match)
-                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
+                        if re.search(cdn_versionRegex, match):
+                            platform_data['version'] = re.search(cdn_versionRegex, match).group(0)
+                        else:
+                            platform_data['version'] = ''
             
             # Determine product_type based on cdn or iris_cdn
             if platform_data['cdn'] or platform_data['iris_cdn']:
@@ -165,10 +183,16 @@ def parse_content(input_string):
                 for match in found:
                     if 'iris' in match.lower():
                         platform_data['iris_cdn'].append(match)
-                        platform_data['iris_version'] = re.search(cdn_versionRegex, match).group(0) or ''
+                        if re.search(cdn_versionRegex, match):
+                            platform_data['iris_version'] = re.search(cdn_versionRegex, match).group(0)
+                        else:
+                            platform_data['iris_version'] = ''
                     else:
                         platform_data['cdn'].append(match)
-                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
+                        if re.search(cdn_versionRegex, match):
+                            platform_data['version'] = re.search(cdn_versionRegex, match).group(0)
+                        else:
+                            platform_data['version'] = ''
             platform_data['cocoapods'] = macos_dependencies
             platform_data['iris_cocoapods'] = iris_macos_dependencies
             
@@ -186,10 +210,16 @@ def parse_content(input_string):
                 for match in found:
                     if 'iris' in match.lower():
                         platform_data['iris_cdn'].append(match)
-                        platform_data['iris_version'] = re.search(cdn_versionRegex, match).group(0) or ''
+                        if re.search(cdn_versionRegex, match):
+                            platform_data['iris_version'] = re.search(cdn_versionRegex, match).group(0)
+                        else:
+                            platform_data['iris_version'] = ''
                     else:
                         platform_data['cdn'].append(match)
-                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
+                        if re.search(cdn_versionRegex, match):
+                            platform_data['version'] = re.search(cdn_versionRegex, match).group(0)
+                        else:
+                            platform_data['version'] = ''
             
             # Determine product_type based on cdn or iris_cdn
             if platform_data['cdn'] or platform_data['iris_cdn']:
@@ -205,10 +235,16 @@ def parse_content(input_string):
                 for match in found:
                     if 'iris' in match.lower():
                         platform_data['iris_cdn'].append(match)
-                        platform_data['iris_version'] = re.search(cdn_versionRegex, match).group(0) or ''
+                        if re.search(cdn_versionRegex, match):
+                            platform_data['iris_version'] = re.search(cdn_versionRegex, match).group(0)
+                        else:
+                            platform_data['iris_version'] = ''
                     else:
                         platform_data['cdn'].append(match)
-                        platform_data['version'] = re.search(cdn_versionRegex, match).group(0) or ''
+                        if re.search(cdn_versionRegex, match):
+                            platform_data['version'] = re.search(cdn_versionRegex, match).group(0)
+                        else:
+                            platform_data['version'] = ''
         
         # Determine product_type based on cdn or iris_cdn
         if platform_data['cdn'] or platform_data['iris_cdn']:
