@@ -7,7 +7,7 @@ import argparse
 
 
 android_cdnRegex = [
-    r"https://download\.(?:agora|shengwang)\.[^\s]*(?:Android|JAVA|Java)[^\s]*\.zip"
+    r"https://download\.(?:agora|shengwang)\.\S+?(?:Android|JAVA|Java)\S+?\.zip"
 ]
 
 mavenRegex = [
@@ -15,15 +15,15 @@ mavenRegex = [
 ]
 
 iOS_cdnRegex = [
-    r"https://download\.(?:agora|shengwang)\.[^\s]*(?:_iOS|iOS_|_OC_SDK|Objective)[^\s]*\.zip"
+    r"https://download\.(?:agora|shengwang)\.\S+?(?:_iOS|iOS_|_OC_SDK|Objective)\S+?\.zip"
 ]
 
 windows_cdnRegex = [
-    r"https://download\.(?:agora|shengwang)\.[^\s]*(?:Windows|windows)[^\s]*\.zip"
+    r"https://download\.(?:agora|shengwang)\.\S+?(?:Windows|windows)\S+?\.zip"
 ]
 
 mac_cdnRegex = [
-    r"https://download\.(?:agora|shengwang)\.[^\s]*(?:_Mac|Mac_|macOS|_OC_SDK)[^\s]*\.zip"
+    r"https://download\.(?:agora|shengwang)\.\S+?(?:_Mac|Mac_|macOS|_OC_SDK)\S+?\.zip"
 ]
 
 cocoapodsRegex = [
@@ -31,11 +31,11 @@ cocoapodsRegex = [
 ]
 
 linux_cdnRegex = [
-    r"https://download\.(?:agora|shengwang)\.[^\s]*Linux[^\s]*\.zip"
+    r"https://download\.(?:agora|shengwang)\.\S+?Linux\S+?\.zip"
 ]
 
 web_cdnRegex = [
-    r"https://download\.(?:agora|shengwang)\.[^\s]*(?:iris-web|web)[^\s]*\.js"
+    r"https://download\.(?:agora|shengwang)\.\S+?(?:iris-web|web)\S+?\.js"
 ]
 
 cdn_versionRegex = r'(\d+\.\d+\.\d+(?:\.\d+)?(?:-build\.\d+)?(?:-meeting\.\d+)?(?:-preview)?)'
