@@ -1,5 +1,4 @@
 name: move Package to Shenwang repo
-description: 'Sync code from Agora-Flutter-SDK to Shengwang-Flutter-SDK with package name changes'
 
 inputs:
   github-email:
@@ -41,8 +40,6 @@ runs:
         token: ${{ inputs.github-token }}
         path: ${{ inputs.target-repo }}
         repository: ${{ github.repository_owner }}/${{ inputs.target-repo }}
-        ref: ${{ inputs.target-branch }}
-        fetch-depth: 0
 
     - name: Configure git
       run: |
@@ -51,207 +48,53 @@ runs:
         git config --global push.autoSetupRemote true
       shell: bash
 
-    - name: Create sync branch
-      id: create_branch
-      run: |
-        cd ${{ inputs.target-repo }}
-        git checkout ${{ inputs.target-branch }} || git checkout -b ${{ inputs.target-branch }}
-        SYNC_BRANCH="${{ inputs.target-branch }}-shengwang-sync-auto-${{ github.run_id }}"
-        git checkout -b ${SYNC_BRANCH} || git checkout ${SYNC_BRANCH}
-        echo "SYNC_BRANCH=${SYNC_BRANCH}" >> $GITHUB_ENV
-        echo "branch=${SYNC_BRANCH}" >> $GITHUB_OUTPUT
-      shell: bash
-
     - name: Add source repo as remote
       run: |
-        cd ${{ inputs.target-repo }}
         git remote add agora https://github.com/${{ github.repository_owner }}/${{ inputs.source-repo }}.git
         git fetch agora
       shell: bash
+      working-directory: ${{ inputs.target-repo }}
 
-    - name: Merge source repo (allow conflicts)
+    - name: Rebase source repo onto target repo
       run: |
-        cd ${{ inputs.target-repo }}
-        if git merge agora/${{ inputs.target-branch }} --no-edit --no-ff; then
-          echo "✅ Merge successful, no conflicts"
-          echo "HAS_CONFLICTS=false" >> $GITHUB_ENV
-        else
-          echo "⚠️ Merge conflict detected - conflicts will be shown in PR"
-          echo "HAS_CONFLICTS=true" >> $GITHUB_ENV
-          git status
-          CONFLICT_FILES=$(git diff --name-only --diff-filter=U || true)
-          echo "Conflict files:"
-          echo "$CONFLICT_FILES"
-        fi
-        echo "HAS_CONFLICTS=${HAS_CONFLICTS:-false}" >> $GITHUB_ENV
+        git checkout ${{ inputs.target-branch }}
+        git rebase agora/${{ inputs.target-branch }}
+      shell: bash
+      working-directory: ${{ inputs.target-repo }}
+
+    - name: Push changes to target repo
+      run: |
+        git push origin ${{ inputs.target-branch }} --force
         git remote remove agora
       shell: bash
-      continue-on-error: true
+      working-directory: ${{ inputs.target-repo }}
 
     - name: Run pre-command
       run: |
-        cd ${{ inputs.target-repo }}
         ${{ inputs.pre-command }}
       shell: bash
-      continue-on-error: true
-
-    - name: Commit changes (even with conflicts)
-      id: commit_changes
-      run: |
-        cd ${{ inputs.target-repo }}
-        git add -A
-        
-        CONFLICT_MARKERS=$(git diff --check 2>/dev/null | grep -c "conflict" || echo "0")
-        if [ "$CONFLICT_MARKERS" -gt 0 ] || git diff --cached --check 2>/dev/null | grep -q "conflict"; then
-          echo "⚠️ Conflict markers detected, but will commit anyway"
-          echo "HAS_CONFLICTS=true" >> $GITHUB_ENV
-          CONFLICT_FILES=$(git diff --name-only --diff-filter=U 2>/dev/null || git diff --check 2>/dev/null | grep -oE '^[^:]+' | sort -u | tr '\n' ',' || echo "")
-          echo "CONFLICT_FILES=${CONFLICT_FILES}" >> $GITHUB_ENV
-        else
-          echo "HAS_CONFLICTS=false" >> $GITHUB_ENV
-          echo "CONFLICT_FILES=" >> $GITHUB_ENV
-        fi
-        
-        if git diff --staged --quiet && git diff --quiet; then
-          echo "No changes to commit"
-          echo "HAS_CHANGES=false" >> $GITHUB_ENV
-        else
-          echo "HAS_CHANGES=true" >> $GITHUB_ENV
-          git commit -m "[AUTO]change package from agora to shengwang
-
-        Sync from ${{ github.repository }}@${{ inputs.target-branch }}
-        Run ID: ${{ github.run_id }}
-        
-        ⚠️ This PR may contain merge conflicts that need to be resolved manually." || {
-            echo "⚠️ Commit failed, trying with --allow-empty"
-            git commit -m "[AUTO]change package from agora to shengwang (with conflicts)" --allow-empty || true
-          }
-        fi
-      shell: bash
-      continue-on-error: true
-
-    - name: Push changes
-      run: |
-        cd ${{ inputs.target-repo }}
-        SYNC_BRANCH="${{ inputs.target-branch }}-shengwang-sync-auto-${{ github.run_id }}"
-        git push origin ${SYNC_BRANCH} --force || {
-          echo "⚠️ Push failed, but will try to create PR anyway"
-        }
-      shell: bash
-      continue-on-error: true
+      working-directory: ${{ inputs.target-repo }}
 
     - name: Commit directly
       if: ${{ !inputs.create-pr }}
       run: |
-        cd ${{ inputs.target-repo }}
-        git push origin ${{ inputs.target-branch }} --force || true
+        git add .
+        git commit -m '[AUTO]change package from agora to shengwang'
+        git push origin ${{ inputs.target-branch }} --force
+      working-directory: ${{ inputs.target-repo }}
       shell: bash
-      continue-on-error: true
 
     - name: Create pull request
       if: ${{ inputs.create-pr }}
-      run: |
-        cd ${{ inputs.target-repo }}
-        SYNC_BRANCH="${{ inputs.target-branch }}-shengwang-sync-auto-${{ github.run_id }}"
-        
-        HAS_CONFLICTS="${HAS_CONFLICTS:-false}"
-        CONFLICT_FILES="${CONFLICT_FILES:-}"
-        
-        if [ "$HAS_CONFLICTS" = "true" ] && [ -n "$CONFLICT_FILES" ]; then
-          CONFLICT_FILES_LIST=$(echo "$CONFLICT_FILES" | tr ',' '\n' | grep -v '^$' | sed 's/^/- /')
-          CONFLICT_SECTION=$(cat <<CONFLICT_EOF
-        
-        ## ⚠️ Merge Conflicts Detected
-        
-        **This PR contains merge conflicts that must be resolved before merging.**
-        
-        ### Conflict Files:
-        $CONFLICT_FILES_LIST
-        
-        ### How to Resolve:
-        
-        **Option 1: Resolve on GitHub (Recommended)**
-        1. Click "Resolve conflicts" button on this PR
-        2. Edit files in the web editor
-        3. Remove conflict markers (\`<<<<<<<\`, \`=======\`, \`>>>>>>>\`)
-        4. Click "Mark as resolved" and "Commit merge"
-        
-        **Option 2: Resolve Locally**
-        \`\`\`bash
-        git fetch origin ${SYNC_BRANCH}
-        git checkout ${SYNC_BRANCH}
-        git add .
-        git commit -m "Resolve merge conflicts"
-        git push origin ${SYNC_BRANCH}
-        \`\`\`
-        CONFLICT_EOF
-          )
-        else
-          CONFLICT_SECTION=""
-        fi
-        
-        PR_BODY=$(cat <<EOF
-        This is an auto-generated PR to sync agora to shengwang
-        
-        **Source:** ${{ github.repository }}@${{ inputs.target-branch }}
-        **Run ID:** ${{ github.run_id }}
-        
-        ## Changes
-        - Package name changed from \`agora_rtc_engine\` to \`shengwang_rtc_engine\`
-        - Repository references updated
-        - Links updated from agora.io to shengwang.cn
-        $CONFLICT_SECTION
-        
-        > This pull request is auto-generated by workflow. Please review and merge when ready.
-        EOF
-        )
-        
-        RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ inputs.github-token }}" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          https://api.github.com/repos/${{ github.repository_owner }}/${{ inputs.target-repo }}/pulls \
-          -d "{
-            \"title\": \"[AUTO]change package from agora to shengwang\",
-            \"body\": $(echo "$PR_BODY" | jq -Rs .),
-            \"head\": \"${SYNC_BRANCH}\",
-            \"base\": \"${{ inputs.target-branch }}\"
-          }")
-        
-        HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-        PR_RESPONSE=$(echo "$RESPONSE" | sed '$d')
-        
-        if [ "$HTTP_CODE" -eq 201 ]; then
-          PR_URL=$(echo "$PR_RESPONSE" | jq -r '.html_url')
-          echo "✅ Pull Request created: $PR_URL"
-          echo "PR_URL=$PR_URL" >> $GITHUB_OUTPUT
-          
-          PR_NUMBER=$(echo "$PR_RESPONSE" | jq -r '.number')
-          curl -s -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ inputs.github-token }}" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/${{ github.repository_owner }}/${{ inputs.target-repo }}/issues/${PR_NUMBER}/labels \
-            -d '{"labels":["auto-generated"]}' || true
-        elif [ "$HTTP_CODE" -eq 422 ]; then
-          echo "⚠️ PR might already exist, checking..."
-          EXISTING_PR=$(curl -s \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ inputs.github-token }}" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/${{ github.repository_owner }}/${{ inputs.target-repo }}/pulls?head=${{ github.repository_owner }}:${SYNC_BRANCH}&base=${{ inputs.target-branch }}" | \
-            jq -r '.[0].html_url // empty')
-          
-          if [ -n "$EXISTING_PR" ]; then
-            echo "✅ Found existing PR: $EXISTING_PR"
-            echo "PR_URL=$EXISTING_PR" >> $GITHUB_OUTPUT
-          else
-            echo "⚠️ Failed to create PR (HTTP $HTTP_CODE): $PR_RESPONSE"
-            exit 1
-          fi
-        else
-          echo "⚠️ Failed to create PR (HTTP $HTTP_CODE): $PR_RESPONSE"
-          exit 1
-        fi
-      shell: bash
-      continue-on-error: true
+      uses: AgoraIO-Extensions/actions/.github/actions/pr@sync
+      with:
+        github-token: ${{ inputs.github-token }}
+        target-repo: ${{ inputs.target-repo }}
+        target-branch: ${{ inputs.target-branch }}
+        target-branch-name-surffix: shengwang-sync-auto
+        pull-request-title: |
+          [AUTO]change package from agora to shengwang
+        pull-request-body: |
+          This is an auto-generated PR to sync agora to shengwang
+          Please review changes and check the CI status.
+          If everything is fine, please merge this PR.
