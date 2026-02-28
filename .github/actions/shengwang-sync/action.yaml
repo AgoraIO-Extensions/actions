@@ -55,10 +55,10 @@ runs:
       shell: bash
       working-directory: ${{ inputs.target-repo }}
 
-    - name: Rebase source repo onto target repo
+    - name: Reset target branch to source repo state
       run: |
         git checkout ${{ inputs.target-branch }}
-        git rebase agora/${{ inputs.target-branch }}
+        git reset --hard agora/${{ inputs.target-branch }}
       shell: bash
       working-directory: ${{ inputs.target-repo }}
 
