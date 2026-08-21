@@ -6,8 +6,10 @@ import argparse
 # python dep.py "input_string" --output "output.json"
 
 
+cdn_part = r"(?:(?!https://)\S)"
+
 android_cdnRegex = [
-    r"https://download\.(?:agora|shengwang)\.\S+?(?:Android|JAVA|Java)\S+?\.zip"
+    rf"https://download\.(?:agora|shengwang)\.{cdn_part}+?(?:Android|JAVA|Java){cdn_part}+?\.zip"
 ]
 
 mavenRegex = [
@@ -15,15 +17,15 @@ mavenRegex = [
 ]
 
 iOS_cdnRegex = [
-    r"https://download\.(?:agora|shengwang)\.\S+?(?:_iOS|iOS_|_OC_SDK|Objective)\S+?\.zip"
+    rf"https://download\.(?:agora|shengwang)\.{cdn_part}+?(?:_iOS|iOS_|_OC_SDK|Objective){cdn_part}+?\.zip"
 ]
 
 windows_cdnRegex = [
-    r"https://download\.(?:agora|shengwang)\.\S+?(?:Windows|windows)\S+?\.zip"
+    rf"https://download\.(?:agora|shengwang)\.{cdn_part}+?(?:Windows|windows){cdn_part}+?\.zip"
 ]
 
 mac_cdnRegex = [
-    r"https://download\.(?:agora|shengwang)\.\S+?(?:_Mac|Mac_|macOS|_OC_SDK)\S+?\.zip"
+    rf"https://download\.(?:agora|shengwang)\.{cdn_part}+?(?:_Mac|Mac_|macOS|_OC_SDK){cdn_part}+?\.zip"
 ]
 
 cocoapodsRegex = [
@@ -31,11 +33,11 @@ cocoapodsRegex = [
 ]
 
 linux_cdnRegex = [
-    r"https://download\.(?:agora|shengwang)\.\S+?Linux\S+?\.zip"
+    rf"https://download\.(?:agora|shengwang)\.{cdn_part}+?Linux{cdn_part}+?\.zip"
 ]
 
 web_cdnRegex = [
-    r"https://download\.(?:agora|shengwang)\.\S+?(?:iris-web|web)\S+?\.js"
+    rf"https://download\.(?:agora|shengwang)\.{cdn_part}+?(?:iris-web|web){cdn_part}+?\.js"
 ]
 
 cdn_versionRegex = r'(\d+\.\d+\.\d+(?:\.\d+)?(?:-build\.\d+)?(?:-meeting\.\d+)?(?:-preview)?)'
